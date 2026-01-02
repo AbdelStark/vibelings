@@ -3,6 +3,8 @@ id = "json_03"
 title = "Array Contracts"
 track = "fundamentals"
 prerequisites = ["json_01", "json_02"]
+description = "Master array constraints including item schemas, length validation, and uniqueness"
+difficulty = 2
 
 [requirements]
 tool_calling = false

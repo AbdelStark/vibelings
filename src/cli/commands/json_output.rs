@@ -176,3 +176,174 @@ pub fn print_json<T: Serialize>(value: &T) -> crate::Result<()> {
     println!("{}", json);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_status_to_string_all_variants() {
+        assert_eq!(status_to_string(&ExerciseStatus::Pending), "pending");
+        assert_eq!(status_to_string(&ExerciseStatus::InProgress), "in_progress");
+        assert_eq!(status_to_string(&ExerciseStatus::Completed), "completed");
+        assert_eq!(status_to_string(&ExerciseStatus::Flaky), "flaky");
+        assert_eq!(
+            status_to_string(&ExerciseStatus::NeedsReruns),
+            "needs_reruns"
+        );
+        assert_eq!(
+            status_to_string(&ExerciseStatus::Experimental),
+            "experimental"
+        );
+    }
+
+    #[test]
+    fn test_list_output_serialization() {
+        let output = ListOutput {
+            exercises: vec![ExerciseInfo {
+                id: "fundamentals/json_01".to_string(),
+                title: "JSON Basics".to_string(),
+                track: "fundamentals".to_string(),
+                status: "completed".to_string(),
+                unlocked: true,
+                difficulty: 1,
+                prerequisites: vec![],
+            }],
+            summary: ListSummary {
+                total: 1,
+                completed: 1,
+                in_progress: 0,
+                pending: 0,
+                completion_percent: 100.0,
+            },
+        };
+
+        let json = serde_json::to_string(&output).unwrap();
+        assert!(json.contains("fundamentals/json_01"));
+        assert!(json.contains("JSON Basics"));
+    }
+
+    #[test]
+    fn test_doctor_output_serialization() {
+        let output = DoctorOutput {
+            healthy: true,
+            checks: vec![
+                HealthCheck {
+                    name: "API Key".to_string(),
+                    passed: true,
+                    detail: Some("Found in environment".to_string()),
+                    warning: None,
+                },
+                HealthCheck {
+                    name: "Network".to_string(),
+                    passed: false,
+                    detail: None,
+                    warning: Some("Offline mode".to_string()),
+                },
+            ],
+            passed: 1,
+            total: 2,
+        };
+
+        let json = serde_json::to_string(&output).unwrap();
+        assert!(json.contains("API Key"));
+        assert!(json.contains("healthy"));
+        // detail should be present for first check
+        assert!(json.contains("Found in environment"));
+        // warning should be present for second check
+        assert!(json.contains("Offline mode"));
+    }
+
+    #[test]
+    fn test_cost_output_serialization() {
+        let output = CostOutput {
+            exercises: vec![ExerciseCost {
+                id: "json_01".to_string(),
+                tokens: 500,
+                cost_usd: 0.0025,
+            }],
+            summary: CostSummary {
+                total_tokens: 500,
+                total_cost_usd: 0.0025,
+                avg_tokens: 500,
+                avg_cost_usd: 0.0025,
+                exercise_count: 1,
+            },
+        };
+
+        let json = serde_json::to_string(&output).unwrap();
+        assert!(json.contains("json_01"));
+        assert!(json.contains("500"));
+    }
+
+    #[test]
+    fn test_verify_output_serialization() {
+        let output = VerifyOutput {
+            success: false,
+            results: vec![
+                VerifyResult {
+                    id: "json_01".to_string(),
+                    passed: true,
+                    error: None,
+                },
+                VerifyResult {
+                    id: "json_02".to_string(),
+                    passed: false,
+                    error: Some("Schema validation failed".to_string()),
+                },
+            ],
+            summary: VerifySummary {
+                total: 2,
+                passed: 1,
+                failed: 1,
+            },
+        };
+
+        let json = serde_json::to_string(&output).unwrap();
+        assert!(json.contains("json_01"));
+        assert!(json.contains("Schema validation failed"));
+        // error should not be present for passing exercise (skip_serializing_if)
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        let results = parsed["results"].as_array().unwrap();
+        assert!(results[0].get("error").is_none());
+    }
+
+    #[test]
+    fn test_exercise_info_defaults() {
+        let info = ExerciseInfo {
+            id: "test".to_string(),
+            title: "Test".to_string(),
+            track: "test".to_string(),
+            status: "pending".to_string(),
+            unlocked: false,
+            difficulty: 1,
+            prerequisites: vec!["prereq".to_string()],
+        };
+
+        assert_eq!(info.prerequisites.len(), 1);
+        assert!(!info.unlocked);
+    }
+
+    #[test]
+    fn test_run_output_serialization() {
+        let output = RunOutput {
+            exercise: "json_01".to_string(),
+            result: RunResult {
+                passed: true,
+                error_message: None,
+                duration_secs: 0.15,
+                cost_usd: 0.001,
+                tool_calls: 0,
+                tokens_in: 100,
+                tokens_out: 50,
+                grading_details: None,
+                trace_id: Some("trace-123".to_string()),
+            },
+        };
+
+        let json = serde_json::to_string(&output).unwrap();
+        assert!(json.contains("json_01"));
+        assert!(json.contains("passed"));
+        assert!(json.contains("0.15"));
+    }
+}

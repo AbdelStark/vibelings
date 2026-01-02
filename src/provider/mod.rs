@@ -127,3 +127,96 @@ pub fn create_provider_with_retry(config: &UserConfig) -> Result<Arc<dyn ModelPr
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::{LocalConfig, ModelConfig};
+
+    fn local_config() -> UserConfig {
+        UserConfig {
+            model: ModelConfig {
+                provider: ProviderType::Local,
+                model: "test-model".to_string(),
+                temperature: 0.0,
+                max_tokens: None,
+                fallback_providers: vec![],
+            },
+            local: LocalConfig {
+                base_url: "http://localhost:11434/v1".to_string(),
+                api_key: None,
+            },
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_create_provider_local() {
+        let config = local_config();
+        let result = create_provider(&config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_create_provider_with_retry_local() {
+        let config = local_config();
+        let result = create_provider_with_retry(&config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_create_provider_with_retry_and_fallbacks() {
+        let mut config = local_config();
+        // Add fallback providers (they will be skipped if not configured)
+        config.model.fallback_providers = vec![ProviderType::OpenAI, ProviderType::Anthropic];
+
+        let result = create_provider_with_retry(&config);
+        // Should succeed even if fallbacks fail - primary is local which works
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_create_provider_skips_duplicate_fallback() {
+        let mut config = local_config();
+        // Add same provider as fallback (should be skipped)
+        config.model.fallback_providers = vec![ProviderType::Local];
+
+        let result = create_provider_with_retry(&config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_create_provider_for_all_types() {
+        let config = UserConfig::default();
+
+        // Local should always work (no API key needed)
+        let local_config = {
+            let mut c = config.clone();
+            c.model.provider = ProviderType::Local;
+            c
+        };
+        assert!(create_provider(&local_config).is_ok());
+
+        // Other providers may fail without API keys, but should not panic
+        let openrouter_config = {
+            let mut c = config.clone();
+            c.model.provider = ProviderType::OpenRouter;
+            c
+        };
+        let _ = create_provider(&openrouter_config); // May fail, that's OK
+
+        let openai_config = {
+            let mut c = config.clone();
+            c.model.provider = ProviderType::OpenAI;
+            c
+        };
+        let _ = create_provider(&openai_config); // May fail, that's OK
+
+        let anthropic_config = {
+            let mut c = config.clone();
+            c.model.provider = ProviderType::Anthropic;
+            c
+        };
+        let _ = create_provider(&anthropic_config); // May fail, that's OK
+    }
+}
