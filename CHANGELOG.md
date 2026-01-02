@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Test coverage**: Added 29 new tests (152 tests total: 70 unit + 19 CLI + 63 grading)
+- **Test coverage**: Added 43 new tests (166 tests total: 84 unit + 19 CLI + 63 grading)
+- **Production readiness audit**: Improved sandbox executor tests, trace store tests, documentation consistency
 - **Exercise count**: Now 16 exercises across 4 tracks (8 fundamentals + 2 MCP + 3 workflows + 3 production)
 - **README**: Improved configuration documentation with provider options
 - **Provider config**: OpenAI, Anthropic, and Local providers now read API key env var names from their config sections

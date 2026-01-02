@@ -104,6 +104,7 @@ Core primitives without frameworks:
 |----------|-------|----------------|
 | `json_01` | JSON Output Contracts | Structured output with schema validation |
 | `json_02` | Complex Nested Schemas | Deep object validation |
+| `json_03` | Array Contracts | Array validation with item constraints |
 | `tools_01` | Basic Tool Calling | Tool schemas and invocation |
 | `tools_02` | Tool Validation | Argument validation and constraints |
 | `error_01` | Handling Tool Failures | Error resilience patterns |
@@ -222,7 +223,7 @@ Progress is saved in `~/.config/vibelings/progress.toml`.
 # Build
 cargo build
 
-# Run tests (123 tests)
+# Run tests (166 tests)
 cargo test
 
 # Run with debug output

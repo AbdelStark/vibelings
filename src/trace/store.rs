@@ -160,17 +160,116 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
-    #[test]
-    fn test_trace_store() {
+    fn create_test_store() -> (TraceStore, TempDir) {
         let temp_dir = TempDir::new().unwrap();
         let store = TraceStore {
             traces_dir: temp_dir.path().to_path_buf(),
         };
+        (store, temp_dir)
+    }
+
+    #[test]
+    fn test_trace_store() {
+        let (store, _temp) = create_test_store();
 
         let trace = Trace::new("test/exercise");
         let id = store.save(&trace).unwrap();
 
         let loaded = store.load(&id).unwrap();
         assert_eq!(loaded.exercise_id, "test/exercise");
+    }
+
+    #[test]
+    fn test_save_trace_simplified() {
+        let (store, _temp) = create_test_store();
+
+        let id = store
+            .save_trace("test/exercise", "test prompt", "test response", true, 1.5)
+            .unwrap();
+
+        let loaded = store.load(&id).unwrap();
+        assert_eq!(loaded.exercise_id, "test/exercise");
+        assert!(loaded.passed);
+    }
+
+    #[test]
+    fn test_load_nonexistent_trace() {
+        let (store, _temp) = create_test_store();
+
+        let result = store.load("nonexistent-id-12345");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_list_for_exercise() {
+        let (store, _temp) = create_test_store();
+
+        // Save traces for different exercises
+        store
+            .save_trace("exercise/one", "p1", "r1", true, 1.0)
+            .unwrap();
+        store
+            .save_trace("exercise/one", "p2", "r2", false, 2.0)
+            .unwrap();
+        store
+            .save_trace("exercise/two", "p3", "r3", true, 1.0)
+            .unwrap();
+
+        let traces_one = store.list_for_exercise("exercise/one").unwrap();
+        assert_eq!(traces_one.len(), 2);
+
+        let traces_two = store.list_for_exercise("exercise/two").unwrap();
+        assert_eq!(traces_two.len(), 1);
+
+        let traces_none = store.list_for_exercise("exercise/none").unwrap();
+        assert!(traces_none.is_empty());
+    }
+
+    #[test]
+    fn test_get_latest() {
+        let (store, _temp) = create_test_store();
+
+        // Save multiple traces for same exercise
+        store
+            .save_trace("exercise/test", "first", "r1", false, 1.0)
+            .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        store
+            .save_trace("exercise/test", "second", "r2", true, 2.0)
+            .unwrap();
+
+        let latest = store.get_latest("exercise/test").unwrap();
+        assert!(latest.is_some());
+        let latest = latest.unwrap();
+        assert!(latest.passed); // The second one was passed=true
+    }
+
+    #[test]
+    fn test_get_latest_no_traces() {
+        let (store, _temp) = create_test_store();
+
+        let latest = store.get_latest("nonexistent/exercise").unwrap();
+        assert!(latest.is_none());
+    }
+
+    #[test]
+    fn test_cleanup() {
+        let (store, _temp) = create_test_store();
+
+        // Save 5 traces for one exercise
+        for i in 0..5 {
+            store
+                .save_trace("exercise/test", &format!("p{}", i), "r", true, 1.0)
+                .unwrap();
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
+
+        // Cleanup to keep only 2
+        let deleted = store.cleanup(2).unwrap();
+        assert_eq!(deleted, 3);
+
+        // Verify only 2 remain
+        let remaining = store.list_for_exercise("exercise/test").unwrap();
+        assert_eq!(remaining.len(), 2);
     }
 }
