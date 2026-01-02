@@ -17,11 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Retry logic**: Added `RetryingProvider` wrapper with exponential backoff and jitter for rate limiting (429) and transient errors
 - **`create_provider_with_retry`**: New factory function that creates providers with automatic retry logic
 - **New exercise**: Added `fundamentals/json_03` - Array Contracts (teaches array validation and item-level constraints)
+- **Dry-run mode**: `vibelings run --dry-run` previews exercise without making API calls (shows requirements, schema, instructions)
+- **Performance benchmarks**: Added criterion benchmarks for schema validation and JSON parsing (`cargo bench`)
 
 ### Changed
 
 - **Test coverage**: Added 43 new tests (166 tests total: 84 unit + 19 CLI + 63 grading)
 - **Production readiness audit**: Improved sandbox executor tests, trace store tests, documentation consistency
+- **Better error messages**: All error types now include actionable hints (e.g., "Run: export API_KEY=..." for missing env vars)
 - **Exercise count**: Now 16 exercises across 4 tracks (8 fundamentals + 2 MCP + 3 workflows + 3 production)
 - **README**: Improved configuration documentation with provider options
 - **Provider config**: OpenAI, Anthropic, and Local providers now read API key env var names from their config sections

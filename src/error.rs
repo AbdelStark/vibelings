@@ -46,7 +46,7 @@ pub enum Error {
 /// Configuration-related errors.
 #[derive(Error, Debug)]
 pub enum ConfigError {
-    #[error("Configuration file not found at {0}")]
+    #[error("Configuration file not found at {0}. Run 'vibelings init' to create one")]
     NotFound(PathBuf),
 
     #[error("Invalid configuration: {0}")]
@@ -58,14 +58,14 @@ pub enum ConfigError {
     #[error("Invalid provider configuration: {0}")]
     InvalidProvider(String),
 
-    #[error("Environment variable not set: {0}")]
+    #[error("Environment variable '{0}' not set. Run: export {0}=<your-api-key>")]
     EnvVarNotSet(String),
 }
 
 /// Exercise-related errors.
 #[derive(Error, Debug)]
 pub enum ExerciseError {
-    #[error("Exercise not found: {0}")]
+    #[error("Exercise '{0}' not found. Run 'vibelings list' to see available exercises")]
     NotFound(String),
 
     #[error("Invalid manifest at {path}: {reason}")]
@@ -77,7 +77,7 @@ pub enum ExerciseError {
     #[error("Missing starter files for exercise: {0}")]
     MissingStarterFiles(String),
 
-    #[error("Prerequisites not met for exercise {exercise}: missing {missing:?}")]
+    #[error("Prerequisites not met for '{exercise}'. Complete first: {missing:?}")]
     PrerequisitesNotMet {
         exercise: String,
         missing: Vec<String>,
@@ -87,25 +87,25 @@ pub enum ExerciseError {
 /// Provider-related errors.
 #[derive(Error, Debug)]
 pub enum ProviderError {
-    #[error("API key not configured for provider: {0}")]
+    #[error("API key not configured for {0}. Check your configuration")]
     ApiKeyNotConfigured(String),
 
-    #[error("HTTP request failed: {0}")]
+    #[error("Network error: {0}. Check your internet connection")]
     HttpError(String),
 
-    #[error("Rate limited by provider: {0}")]
+    #[error("Rate limited by provider. Wait a moment and try again. Details: {0}")]
     RateLimited(String),
 
-    #[error("Model not supported: {0}")]
+    #[error("Model '{0}' not supported. Run 'vibelings doctor' to check available models")]
     ModelNotSupported(String),
 
-    #[error("Provider response error: {status} - {message}")]
+    #[error("Provider error ({status}): {message}")]
     ResponseError { status: u16, message: String },
 
-    #[error("Invalid response format: {0}")]
+    #[error("Invalid response from provider: {0}")]
     InvalidResponse(String),
 
-    #[error("Feature not supported by model: {model} does not support {feature}")]
+    #[error("Model '{model}' does not support {feature}. Try a different model")]
     FeatureNotSupported { model: String, feature: String },
 }
 

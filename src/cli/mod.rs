@@ -26,7 +26,11 @@ pub async fn run() -> Result<()> {
 
     match &cli.command {
         Some(Commands::Init { track }) => commands::init::run(track.as_deref()).await,
-        Some(Commands::Run { exercise, verbose }) => commands::run::run(exercise, *verbose).await,
+        Some(Commands::Run {
+            exercise,
+            verbose,
+            dry_run,
+        }) => commands::run::run(exercise, *verbose, *dry_run).await,
         Some(Commands::List { track, all }) => commands::list::run(track.as_deref(), *all).await,
         Some(Commands::Hint { exercise, level }) => {
             commands::hint::run(exercise.as_deref(), *level).await

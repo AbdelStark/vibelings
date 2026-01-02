@@ -119,6 +119,19 @@ pub enum GraderType {
     LlmJudge,
 }
 
+impl std::fmt::Display for GraderType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GraderType::Schema => write!(f, "schema"),
+            GraderType::Invariants => write!(f, "invariants"),
+            GraderType::Combined => write!(f, "combined"),
+            GraderType::Sandbox => write!(f, "sandbox"),
+            GraderType::Reliability => write!(f, "reliability"),
+            GraderType::LlmJudge => write!(f, "llm-judge"),
+        }
+    }
+}
+
 /// Requirements for running an exercise.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ExerciseRequirements {
