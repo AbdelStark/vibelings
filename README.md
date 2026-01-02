@@ -119,6 +119,7 @@ Model Context Protocol implementation:
 |----------|-------|----------------|
 | `server_01` | MCP Tool Definition | Define tools per MCP specification |
 | `client_01` | MCP JSON-RPC Request | Construct valid tool call requests |
+| `resource_01` | MCP Resource Definition | Define resources per MCP specification |
 
 ### Track 3: Workflow Orchestration
 
@@ -224,7 +225,7 @@ Progress is saved in `~/.config/vibelings/progress.toml`.
 # Build
 cargo build
 
-# Run tests (180 tests)
+# Run tests (188 tests)
 cargo test
 
 # Run with debug output

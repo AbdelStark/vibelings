@@ -138,9 +138,9 @@
 - [x] Unit tests for all modules (98 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (19 passing)
-- [x] Exercise grading tests (63 passing)
+- [x] Exercise grading tests (71 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 180 tests passing
+- [x] Total: 188 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -176,11 +176,16 @@
 
 ### 2026-01-02 (Session 9)
 - Documentation consistency updates:
-  - Fixed test count in README.md (166 → 180)
+  - Fixed test count in README.md (166 → 188)
   - Added `vibelings progress` to README commands table
   - Added missing starter/prompt.txt for json_03 exercise
   - Updated ROADMAP with accurate test counts
-- Total: 180 tests passing (98 unit + 19 CLI + 63 grading)
+- Added new exercise: `mcp/resource_01` (MCP Resource Definition)
+  - Teaches MCP resource schema, URI formats, MIME types
+  - Complements server_01 (tools) and client_01 (JSON-RPC)
+  - Includes 8 grading tests
+- Exercise count: 17 exercises across 4 tracks (8 fundamentals + 3 MCP + 3 workflows + 3 production)
+- Total: 188 tests passing (98 unit + 19 CLI + 71 grading)
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 8)

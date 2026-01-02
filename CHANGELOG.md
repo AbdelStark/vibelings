@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **New exercise**: Added `mcp/resource_01` - MCP Resource Definition (teaches resource schema, URI formats, MIME types)
 - **JSON output mode**: Global `--json` flag for machine-readable output (supports `list`, `run`, `doctor`, `cost`, `verify`, `progress` commands) - enables scripting and CI integration
 - **Exercise search**: `vibelings list --search <query>` filters exercises by keyword (matches ID, title, description) - case-insensitive
 - **Progress dashboard**: `vibelings progress` shows curriculum overview with track-by-track progress, statistics, and motivational messages
@@ -27,10 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Test coverage**: Added 57 new tests (180 tests total: 98 unit + 19 CLI + 63 grading)
+- **Test coverage**: Added 65 new tests (188 tests total: 98 unit + 19 CLI + 71 grading)
 - **Production readiness audit**: Improved sandbox executor tests, trace store tests, documentation consistency
 - **Better error messages**: All error types now include actionable hints (e.g., "Run: export API_KEY=..." for missing env vars)
-- **Exercise count**: Now 16 exercises across 4 tracks (8 fundamentals + 2 MCP + 3 workflows + 3 production)
+- **Exercise count**: Now 17 exercises across 4 tracks (8 fundamentals + 3 MCP + 3 workflows + 3 production)
 - **README**: Improved configuration documentation with provider options
 - **Provider config**: OpenAI, Anthropic, and Local providers now read API key env var names from their config sections
 - **Exercise runner**: Now uses retry-enabled provider for automatic rate limiting handling

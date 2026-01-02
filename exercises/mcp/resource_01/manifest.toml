@@ -1,0 +1,21 @@
+[exercise]
+id = "resource_01"
+title = "MCP Resource Definition"
+track = "mcp"
+prerequisites = ["server_01"]
+description = "Learn to define resources following the Model Context Protocol specification"
+difficulty = 2
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"
