@@ -1,0 +1,21 @@
+[exercise]
+id = "workflow_human_loop_01"
+title = "Human-in-the-Loop Patterns"
+track = "workflows"
+prerequisites = ["workflow_tool_wiring_01"]
+description = "Learn to design workflows with human approval gates and fallback handlers"
+difficulty = 3
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

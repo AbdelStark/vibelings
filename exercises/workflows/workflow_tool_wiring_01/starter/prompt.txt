@@ -1,0 +1,23 @@
+You are designing a tool pipeline for processing customer orders.
+
+Create a pipeline with these 5 steps:
+1. fetch_order - Retrieve order from API
+2. transform_data - Convert to internal format
+3. enrich_customer - Add customer details from CRM
+4. validate_order - Check business rules
+5. format_output - Format final result
+
+Output ONLY valid JSON - no explanation or other text.
+
+Each step needs:
+- id (one of the 5 step names above)
+- tool (the tool to use)
+- input_mapping (data sources using {{step_id.field}} syntax)
+- output_schema (what this step produces)
+
+Also include error_handling with:
+- on_step_failure: what to do on failure
+- retry_policy: max_retries and backoff strategy
+- fallback: action and optional notify list
+
+Structure: { "pipeline": { "name": "...", "steps": [...], "error_handling": {...} } }

@@ -1,0 +1,18 @@
+You are creating an n8n-style workflow JSON for processing user signups.
+
+Create a workflow with these three nodes in sequence:
+1. Webhook trigger at path "signup"
+2. Email validation check
+3. Postgres database insert
+
+Output ONLY valid JSON following n8n's workflow structure - no explanation or other text.
+
+The workflow must include:
+- A "name" field
+- A "nodes" array with 3 nodes
+- A "connections" object linking nodes in sequence
+
+Required node types:
+- n8n-nodes-base.webhook
+- n8n-nodes-base.if
+- n8n-nodes-base.postgres

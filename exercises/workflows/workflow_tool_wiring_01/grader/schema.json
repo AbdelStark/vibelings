@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tool Pipeline Schema",
+  "description": "Schema for validating tool wiring pipelines",
+  "type": "object",
+  "required": ["pipeline"],
+  "additionalProperties": false,
+  "properties": {
+    "pipeline": {
+      "type": "object",
+      "required": ["name", "steps", "error_handling"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["id", "tool", "input_mapping", "output_schema"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": ["fetch_order", "transform_data", "enrich_customer", "validate_order", "format_output"]
+              },
+              "tool": {
+                "type": "string",
+                "minLength": 1
+              },
+              "input_mapping": {
+                "type": "object",
+                "minProperties": 1
+              },
+              "output_schema": {
+                "type": "object",
+                "minProperties": 1
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "error_handling": {
+          "type": "object",
+          "required": ["on_step_failure", "retry_policy", "fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "on_step_failure": {
+              "type": "string",
+              "enum": ["stop", "continue", "retry", "fallback"]
+            },
+            "retry_policy": {
+              "type": "object",
+              "required": ["max_retries", "backoff"],
+              "properties": {
+                "max_retries": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "backoff": {
+                  "type": "string",
+                  "enum": ["none", "linear", "exponential"]
+                }
+              }
+            },
+            "fallback": {
+              "type": "object",
+              "required": ["action"],
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "notify": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

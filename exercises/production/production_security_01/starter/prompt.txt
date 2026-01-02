@@ -1,0 +1,24 @@
+You are designing a security configuration to defend against prompt injection attacks.
+
+Create a security config for an agent that processes user messages and has access
+to sensitive tools (database, files).
+
+Output ONLY valid JSON - no explanation or other text.
+
+Required structure:
+{
+  "security_config": {
+    "name": "...",
+    "input_validation": {...},       // max_length, blocked_patterns, sanitization_rules
+    "output_filtering": {...},       // action_allowlist, pii_detection, credential_detection
+    "privilege_separation": {...},   // trust_levels (min 2), tool_permissions
+    "attack_detection": {...},       // patterns (min 1), logging_level
+    "response_procedures": {...}     // on_detection action
+  }
+}
+
+input_validation needs: max_length (int), blocked_patterns (array), sanitization_rules (array)
+output_filtering needs: action_allowlist (array of allowed actions)
+privilege_separation needs: trust_levels (array with name+level), tool_permissions (object)
+attack_detection needs: patterns (array with name+pattern), logging_level ("minimal"/"standard"/"verbose")
+response_procedures needs: on_detection ("log_only"/"warn"/"block"/"block_and_log"/"quarantine")

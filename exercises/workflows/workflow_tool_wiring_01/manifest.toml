@@ -1,0 +1,21 @@
+[exercise]
+id = "workflow_tool_wiring_01"
+title = "Tool Wiring Patterns"
+track = "workflows"
+prerequisites = ["workflow_json_01"]
+description = "Learn to wire multiple tools together with data transformation between steps"
+difficulty = 3
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

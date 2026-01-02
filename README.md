@@ -92,17 +92,34 @@ Core primitives without frameworks:
 | `guardrails_01` | Input/Output Validation | Safety boundaries |
 | `observability_01` | Tracing and Costs | Monitoring and cost awareness |
 
-### Track 2: MCP in Practice (Coming Soon)
+### Track 2: MCP in Practice
 
-Model Context Protocol implementation—build servers, clients, and secure tool interfaces.
+Model Context Protocol implementation:
 
-### Track 3: Workflow Orchestration (Coming Soon)
+| Exercise | Topic | What You Learn |
+|----------|-------|----------------|
+| `server_01` | MCP Tool Definition | Define tools per MCP specification |
+| `client_01` | MCP JSON-RPC Request | Construct valid tool call requests |
 
-Integration with workflow tools like n8n for complex agent pipelines.
+### Track 3: Workflow Orchestration
 
-### Track 4: Production Engineering (Coming Soon)
+Integration with workflow tools like n8n:
 
-Reliability at scale—evals, drift management, cost budgets.
+| Exercise | Topic | What You Learn |
+|----------|-------|----------------|
+| `workflow_json_01` | Workflow JSON Schema | n8n-style workflow structure |
+| `workflow_tool_wiring_01` | Tool Wiring Patterns | Data transformation between steps |
+| `workflow_human_loop_01` | Human-in-the-Loop | Approval gates and fallbacks |
+
+### Track 4: Production Engineering
+
+Reliability at scale:
+
+| Exercise | Topic | What You Learn |
+|----------|-------|----------------|
+| `production_eval_01` | Evaluation Harness | Test agent reliability |
+| `production_security_01` | Prompt Injection Defense | Security patterns |
+| `production_budget_01` | Cost/Latency Budgets | Operational guardrails |
 
 ## Commands
 
@@ -178,7 +195,7 @@ Progress is saved in `~/.config/vibelings/progress.toml`.
 # Build
 cargo build
 
-# Run tests (47 tests)
+# Run tests (123 tests)
 cargo test
 
 # Run with debug output

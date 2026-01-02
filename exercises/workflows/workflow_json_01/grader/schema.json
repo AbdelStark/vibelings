@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "n8n Workflow Schema",
+  "description": "Schema for validating n8n-style workflow JSON",
+  "type": "object",
+  "required": ["name", "nodes", "connections"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Workflow name"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "position", "parameters"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique node identifier"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Node display name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "n8n-nodes-base.webhook",
+              "n8n-nodes-base.if",
+              "n8n-nodes-base.postgres"
+            ],
+            "description": "Node type"
+          },
+          "position": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Node position [x, y]"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Node-specific parameters"
+          }
+        }
+      }
+    },
+    "connections": {
+      "type": "object",
+      "minProperties": 2,
+      "description": "Node connections defining data flow",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "main": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["node", "type", "index"],
+                "properties": {
+                  "node": {
+                    "type": "string",
+                    "description": "Target node name"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["main"],
+                    "description": "Connection type"
+                  },
+                  "index": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Output index"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
