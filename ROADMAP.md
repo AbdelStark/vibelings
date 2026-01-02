@@ -2,7 +2,7 @@
 
 > Tracking progress for building "Rustlings for agentic programming"
 
-## Current Status: Phase 6 - Polish & Testing (In Progress)
+## Current Status: Phase 7 - Content Expansion (In Progress)
 
 **Last Updated:** 2026-01-02
 
@@ -15,9 +15,10 @@
 | Phase 1 | Foundation - Core infrastructure | ✅ Complete |
 | Phase 2 | CLI Implementation | ✅ Complete |
 | Phase 3 | First Exercise Track | ✅ Complete (7 exercises) |
-| Phase 4 | Provider Integration | ✅ Complete (OpenRouter + Anthropic) |
+| Phase 4 | Provider Integration | ✅ Complete (4 providers) |
 | Phase 5 | Sandbox & Security | ✅ Complete |
-| Phase 6 | Polish & Testing | 🚧 In Progress |
+| Phase 6 | Polish & Testing | ✅ Complete |
+| Phase 7 | Content Expansion | 🚧 In Progress |
 
 ---
 
@@ -131,29 +132,65 @@
 
 ---
 
-## Phase 6: Polish & Testing 🚧
+## Phase 6: Polish & Testing ✅
 
-### Milestone 6.1: Testing 🚧
-- [x] Unit tests for all modules (54 passing)
+### Milestone 6.1: Testing ✅
+- [x] Unit tests for all modules (55 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (11 passing)
-- [x] Exercise grading tests (41 passing)
+- [x] Exercise grading tests (57 passing)
 - [x] CI/CD setup (GitHub Actions)
+- [x] Total: 123 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
 - [x] AGENTS.md for agent guidance
 - [x] Exercise authoring guide (docs/AUTHORING.md)
-- [ ] API documentation
 
-### Milestone 6.3: Release Preparation
+### Milestone 6.3: UX Improvements ✅
+- [x] Watch mode keyboard interactivity (h/n/l/q)
+
+---
+
+## Phase 7: Content Expansion 🚧
+
+### Milestone 7.1: Workflow Orchestration Track ✅
+- [x] `workflows/workflow_json_01` - n8n workflow JSON structure
+- [x] `workflows/workflow_tool_wiring_01` - Tool wiring patterns
+- [x] `workflows/workflow_human_loop_01` - Human-in-the-loop patterns
+
+### Milestone 7.2: Production Engineering Track ✅
+- [x] `production/production_eval_01` - Evaluation harness design
+- [x] `production/production_security_01` - Prompt injection defense
+- [x] `production/production_budget_01` - Cost/latency budgets
+
+### Milestone 7.3: Release Preparation
 - [ ] Binary builds
 - [ ] Installation instructions
 - [ ] First release notes
+- [ ] API documentation (rustdoc)
 
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 6)
+- Implemented watch mode keyboard interactivity (h/n/l/q)
+  - [h] Show hints for current exercise
+  - [n] Move to next exercise (marks as completed if passed)
+  - [l] List all exercises with progress
+  - [q] Quit watch mode
+- Added UserProgress::mark_completed() method
+- Created Workflow Orchestration track (Track 3) with 3 exercises:
+  - `workflows/workflow_json_01` - n8n workflow JSON structure
+  - `workflows/workflow_tool_wiring_01` - Tool wiring patterns
+  - `workflows/workflow_human_loop_01` - Human-in-the-loop patterns
+- Created Production Engineering track (Track 4) with 3 exercises:
+  - `production/production_eval_01` - Evaluation harness design
+  - `production/production_security_01` - Prompt injection defense
+  - `production/production_budget_01` - Cost/latency budgets
+- Total: 123 tests passing (55 unit + 11 CLI + 57 grading)
+- All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 5)
 - Implemented direct OpenAI provider with full tool calling support
@@ -234,7 +271,7 @@ Core dependencies:
 
 ## Next Steps
 
-1. ~~Add integration tests~~ ✅ Done (106 tests)
+1. ~~Add integration tests~~ ✅ Done (123 tests)
 2. ~~Complete README.md with usage docs~~ ✅ Done
 3. ~~Add AGENTS.md for agent guidance~~ ✅ Done
 4. ~~Set up CI/CD pipeline with GitHub Actions~~ ✅ Done
@@ -243,7 +280,10 @@ Core dependencies:
 7. ~~Add MCP track with exercises~~ ✅ Done (2 exercises)
 8. ~~Implement local provider for Ollama/vLLM~~ ✅ Done
 9. ~~Add exercise authoring documentation~~ ✅ Done (docs/AUTHORING.md)
-10. Prepare first release (binary builds)
+10. ~~Add watch mode keyboard interactivity~~ ✅ Done (h/n/l/q)
+11. ~~Add Workflow Orchestration track~~ ✅ Done (3 exercises)
+12. ~~Add Production Engineering track~~ ✅ Done (3 exercises)
+13. Prepare first release (binary builds)
 
 ---
 
