@@ -1,0 +1,31 @@
+You are a data aggregation agent that must handle failures gracefully.
+
+Given the following task, output tool calls with proper error handling.
+Output ONLY valid JSON - no explanation or other text.
+
+Available tools (each may fail):
+- get_user_profile: Get basic profile (errors: USER_NOT_FOUND, SERVICE_UNAVAILABLE)
+- get_user_preferences: Get preferences (errors: PREFERENCES_NOT_SET, RATE_LIMITED)
+- get_recent_activity: Get activity feed (errors: TIMEOUT, RATE_LIMITED)
+
+Task: "Get the complete user profile for user_id 12345, including their
+preferences and recent activity."
+
+Each tool call must include an "on_error" object specifying:
+- For retryable errors: retry with max_attempts and backoff strategy
+- For non-retryable errors: fallback or fail_immediately
+
+Required output structure:
+{
+  "tool_calls": [
+    {
+      "name": "...",
+      "arguments": {...},
+      "on_error": {
+        "retry": {"max_attempts": N, "backoff": "exponential"},
+        "fallback": "description"
+      }
+    }
+  ],
+  "error_handling_strategy": "overall approach description"
+}
