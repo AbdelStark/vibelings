@@ -197,6 +197,14 @@
 
 ## Progress Log
 
+### 2026-01-02 (Session 12)
+- **Context Track Polish**:
+  - Fixed Context track display name in list command (was using raw "context", now shows "Context Engineering")
+  - Fixed Context track sort order in progress command (explicitly added to sort order)
+  - Added `fallback_providers` documentation to config.example.toml
+- All 112 grading tests, 153 unit tests, and 19 CLI tests still passing
+- All code passes clippy and rustfmt
+
 ### 2026-01-02 (Session 11)
 - **Phase 8.1 Quality Audit Completion**:
   - Added 14 new runner/executor tests for comprehensive coverage

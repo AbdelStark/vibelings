@@ -117,7 +117,8 @@ pub async fn run(json_output: bool) -> Result<()> {
             "mcp" => 1,
             "workflows" => 2,
             "production" => 3,
-            _ => 4,
+            "context" => 4,
+            _ => 5,
         };
         order(&a.name).cmp(&order(&b.name))
     });
