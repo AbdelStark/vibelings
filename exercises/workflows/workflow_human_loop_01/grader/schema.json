@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Human-in-the-Loop Workflow Schema",
+  "description": "Schema for validating workflows with human approval gates",
+  "type": "object",
+  "required": ["workflow"],
+  "additionalProperties": false,
+  "properties": {
+    "workflow": {
+      "type": "object",
+      "required": ["name", "steps", "approval_gates", "timeout_handling"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["id", "action"],
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": ["receive_content", "classify_content", "route_decision", "apply_action"]
+              },
+              "action": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "approval_gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "trigger_condition", "request_to", "context_fields", "timeout_seconds", "outcomes"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "trigger_condition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "request_to": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "context_fields": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "minimum": 60,
+                "maximum": 86400
+              },
+              "outcomes": {
+                "type": "object",
+                "required": ["approved", "rejected", "timeout"],
+                "properties": {
+                  "approved": {
+                    "type": "object",
+                    "required": ["next_step", "action"],
+                    "properties": {
+                      "next_step": { "type": "string" },
+                      "action": { "type": "string" }
+                    }
+                  },
+                  "rejected": {
+                    "type": "object",
+                    "required": ["next_step", "action"],
+                    "properties": {
+                      "next_step": { "type": "string" },
+                      "action": { "type": "string" }
+                    }
+                  },
+                  "timeout": {
+                    "type": "object",
+                    "required": ["next_step", "action"],
+                    "properties": {
+                      "next_step": { "type": "string" },
+                      "action": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "timeout_handling": {
+          "type": "object",
+          "required": ["default_action", "escalation"],
+          "additionalProperties": false,
+          "properties": {
+            "default_action": {
+              "type": "string",
+              "minLength": 1
+            },
+            "escalation": {
+              "type": "object",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "escalate_to": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "notify": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

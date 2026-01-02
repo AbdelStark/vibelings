@@ -955,3 +955,344 @@ fn test_exercise_track() {
         "Exercise should be in fundamentals track"
     );
 }
+
+// =============================================================================
+// WORKFLOW_JSON_01 Tests - Workflow JSON Schema
+// =============================================================================
+
+#[test]
+fn test_workflow_json_01_valid_workflow() {
+    let exercise = load_exercise("workflows", "workflow_json_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "name": "User Signup Processing",
+        "nodes": [
+            {
+                "id": "webhook-1",
+                "name": "Signup Webhook",
+                "type": "n8n-nodes-base.webhook",
+                "position": [0, 0],
+                "parameters": {"path": "signup"}
+            },
+            {
+                "id": "if-1",
+                "name": "Validate Email",
+                "type": "n8n-nodes-base.if",
+                "position": [200, 0],
+                "parameters": {"conditions": {}}
+            },
+            {
+                "id": "postgres-1",
+                "name": "Store User",
+                "type": "n8n-nodes-base.postgres",
+                "position": [400, 0],
+                "parameters": {"operation": "insert"}
+            }
+        ],
+        "connections": {
+            "Signup Webhook": {
+                "main": [[{"node": "Validate Email", "type": "main", "index": 0}]]
+            },
+            "Validate Email": {
+                "main": [[{"node": "Store User", "type": "main", "index": 0}]]
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid workflow to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_workflow_json_01_missing_connections() {
+    let exercise = load_exercise("workflows", "workflow_json_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "name": "Test Workflow",
+        "nodes": [
+            {
+                "id": "webhook-1",
+                "name": "Signup Webhook",
+                "type": "n8n-nodes-base.webhook",
+                "position": [0, 0],
+                "parameters": {}
+            },
+            {
+                "id": "if-1",
+                "name": "Validate Email",
+                "type": "n8n-nodes-base.if",
+                "position": [200, 0],
+                "parameters": {}
+            },
+            {
+                "id": "postgres-1",
+                "name": "Store User",
+                "type": "n8n-nodes-base.postgres",
+                "position": [400, 0],
+                "parameters": {}
+            }
+        ],
+        "connections": {}
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing connections to fail");
+}
+
+#[test]
+fn test_workflow_json_01_wrong_node_type() {
+    let exercise = load_exercise("workflows", "workflow_json_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "name": "Test Workflow",
+        "nodes": [
+            {
+                "id": "webhook-1",
+                "name": "Signup Webhook",
+                "type": "n8n-nodes-base.http",
+                "position": [0, 0],
+                "parameters": {}
+            },
+            {
+                "id": "if-1",
+                "name": "Validate Email",
+                "type": "n8n-nodes-base.if",
+                "position": [200, 0],
+                "parameters": {}
+            },
+            {
+                "id": "postgres-1",
+                "name": "Store User",
+                "type": "n8n-nodes-base.postgres",
+                "position": [400, 0],
+                "parameters": {}
+            }
+        ],
+        "connections": {
+            "Signup Webhook": {
+                "main": [[{"node": "Validate Email", "type": "main", "index": 0}]]
+            },
+            "Validate Email": {
+                "main": [[{"node": "Store User", "type": "main", "index": 0}]]
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong node type to fail");
+}
+
+#[test]
+fn test_workflow_json_01_workflows_track() {
+    let exercise = load_exercise("workflows", "workflow_json_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Workflows,
+        "Exercise should be in workflows track"
+    );
+}
+
+// =============================================================================
+// WORKFLOW_TOOL_WIRING_01 Tests - Tool Wiring Patterns
+// =============================================================================
+
+#[test]
+fn test_workflow_tool_wiring_01_valid_pipeline() {
+    let exercise = load_exercise("workflows", "workflow_tool_wiring_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "pipeline": {
+            "name": "Order Processing Pipeline",
+            "steps": [
+                {
+                    "id": "fetch_order",
+                    "tool": "http_request",
+                    "input_mapping": {"url": "{{trigger.order_url}}"},
+                    "output_schema": {"order_id": "string"}
+                },
+                {
+                    "id": "transform_data",
+                    "tool": "data_transform",
+                    "input_mapping": {"source": "{{fetch_order}}"},
+                    "output_schema": {"order_id": "string"}
+                },
+                {
+                    "id": "enrich_customer",
+                    "tool": "crm_lookup",
+                    "input_mapping": {"id": "{{transform_data.customer_id}}"},
+                    "output_schema": {"name": "string"}
+                },
+                {
+                    "id": "validate_order",
+                    "tool": "validator",
+                    "input_mapping": {"order": "{{transform_data}}"},
+                    "output_schema": {"valid": "boolean"}
+                },
+                {
+                    "id": "format_output",
+                    "tool": "formatter",
+                    "input_mapping": {"data": "{{validate_order}}"},
+                    "output_schema": {"result": "object"}
+                }
+            ],
+            "error_handling": {
+                "on_step_failure": "retry",
+                "retry_policy": {"max_retries": 3, "backoff": "exponential"},
+                "fallback": {"action": "queue_for_review"}
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid pipeline to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_workflow_tool_wiring_01_missing_error_handling() {
+    let exercise = load_exercise("workflows", "workflow_tool_wiring_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "pipeline": {
+            "name": "Test Pipeline",
+            "steps": [
+                {"id": "fetch_order", "tool": "http", "input_mapping": {}, "output_schema": {}},
+                {"id": "transform_data", "tool": "transform", "input_mapping": {}, "output_schema": {}},
+                {"id": "enrich_customer", "tool": "crm", "input_mapping": {}, "output_schema": {}},
+                {"id": "validate_order", "tool": "validate", "input_mapping": {}, "output_schema": {}},
+                {"id": "format_output", "tool": "format", "input_mapping": {}, "output_schema": {}}
+            ]
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing error_handling to fail");
+}
+
+// =============================================================================
+// WORKFLOW_HUMAN_LOOP_01 Tests - Human-in-the-Loop Patterns
+// =============================================================================
+
+#[test]
+fn test_workflow_human_loop_01_valid_workflow() {
+    let exercise = load_exercise("workflows", "workflow_human_loop_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "workflow": {
+            "name": "Content Moderation",
+            "steps": [
+                {"id": "receive_content", "action": "ingest"},
+                {"id": "classify_content", "action": "ml_classify"},
+                {"id": "route_decision", "action": "conditional_route"},
+                {"id": "apply_action", "action": "execute"}
+            ],
+            "approval_gates": [
+                {
+                    "id": "human_review",
+                    "trigger_condition": "confidence < 0.8",
+                    "request_to": ["moderator_queue"],
+                    "context_fields": ["content_id", "classification"],
+                    "timeout_seconds": 3600,
+                    "outcomes": {
+                        "approved": {"next_step": "apply_action", "action": "publish"},
+                        "rejected": {"next_step": "apply_action", "action": "remove"},
+                        "timeout": {"next_step": "apply_action", "action": "hold"}
+                    }
+                }
+            ],
+            "timeout_handling": {
+                "default_action": "hold_for_review",
+                "escalation": {
+                    "enabled": true,
+                    "escalate_to": ["senior_moderator"],
+                    "notify": ["team@example.com"]
+                }
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid human-in-the-loop workflow to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_workflow_human_loop_01_missing_approval_gate() {
+    let exercise = load_exercise("workflows", "workflow_human_loop_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "workflow": {
+            "name": "Content Moderation",
+            "steps": [
+                {"id": "receive_content", "action": "ingest"},
+                {"id": "classify_content", "action": "ml_classify"},
+                {"id": "route_decision", "action": "conditional_route"},
+                {"id": "apply_action", "action": "execute"}
+            ],
+            "approval_gates": [],
+            "timeout_handling": {
+                "default_action": "hold",
+                "escalation": {"enabled": false}
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing approval gate to fail");
+}
+
+#[test]
+fn test_workflow_human_loop_01_timeout_too_short() {
+    let exercise = load_exercise("workflows", "workflow_human_loop_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "workflow": {
+            "name": "Content Moderation",
+            "steps": [
+                {"id": "receive_content", "action": "ingest"},
+                {"id": "classify_content", "action": "ml_classify"},
+                {"id": "route_decision", "action": "conditional_route"},
+                {"id": "apply_action", "action": "execute"}
+            ],
+            "approval_gates": [
+                {
+                    "id": "human_review",
+                    "trigger_condition": "confidence < 0.8",
+                    "request_to": ["queue"],
+                    "context_fields": ["id"],
+                    "timeout_seconds": 30,
+                    "outcomes": {
+                        "approved": {"next_step": "apply_action", "action": "publish"},
+                        "rejected": {"next_step": "apply_action", "action": "remove"},
+                        "timeout": {"next_step": "apply_action", "action": "hold"}
+                    }
+                }
+            ],
+            "timeout_handling": {
+                "default_action": "hold",
+                "escalation": {"enabled": false}
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected timeout < 60 seconds to fail");
+}

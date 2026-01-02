@@ -1,0 +1,29 @@
+You are designing a content moderation workflow with human-in-the-loop capabilities.
+
+Create a workflow that:
+1. Receives user-generated content
+2. Runs automated classification with confidence score
+3. Routes to human review when confidence is low
+4. Applies the final moderation decision
+
+Output ONLY valid JSON - no explanation or other text.
+
+Required structure:
+{
+  "workflow": {
+    "name": "...",
+    "steps": [...],          // 4 steps with IDs: receive_content, classify_content, route_decision, apply_action
+    "approval_gates": [...], // At least 1 gate for human review
+    "timeout_handling": {...} // What to do when humans don't respond
+  }
+}
+
+Each approval gate needs:
+- id, trigger_condition (e.g., "confidence < 0.8")
+- request_to (queue names), context_fields (what to show reviewer)
+- timeout_seconds (60-86400)
+- outcomes: approved, rejected, timeout (each with next_step and action)
+
+timeout_handling needs:
+- default_action (safe fallback)
+- escalation (enabled, escalate_to, notify)
