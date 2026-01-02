@@ -158,4 +158,68 @@ mod tests {
         assert!(content.contains("[model]"));
         assert!(content.contains("[sandbox]"));
     }
+
+    #[test]
+    fn test_default_config_content_has_all_sections() {
+        let content = default_config_content();
+        // Check all main sections
+        assert!(content.contains("[model]"));
+        assert!(content.contains("[openrouter]"));
+        assert!(content.contains("[sandbox]"));
+        assert!(content.contains("[display]"));
+        // Check key values
+        assert!(content.contains("provider = \"openrouter\""));
+        assert!(content.contains("temperature = 0"));
+        assert!(content.contains("network = false"));
+    }
+
+    #[test]
+    fn test_default_config_is_valid_toml() {
+        let content = default_config_content();
+        let result: std::result::Result<UserConfig, _> = toml::from_str(&content);
+        assert!(result.is_ok(), "Default config should be valid TOML");
+    }
+
+    #[test]
+    fn test_config_path_returns_path() {
+        let result = config_path();
+        // Should succeed or fail gracefully - depends on environment
+        if let Ok(path) = result {
+            assert!(path.ends_with("config.toml"));
+        }
+    }
+
+    #[test]
+    fn test_progress_path_returns_path() {
+        let result = progress_path();
+        if let Ok(path) = result {
+            assert!(path.ends_with("progress.toml"));
+        }
+    }
+
+    #[test]
+    fn test_user_progress_roundtrip() {
+        let progress = UserProgress {
+            current_exercise: Some("json_01".to_string()),
+            ..Default::default()
+        };
+
+        // Serialize and deserialize
+        let toml_str = toml::to_string_pretty(&progress).unwrap();
+        let parsed: UserProgress = toml::from_str(&toml_str).unwrap();
+
+        assert_eq!(parsed.current_exercise, Some("json_01".to_string()));
+    }
+
+    #[test]
+    fn test_user_config_roundtrip() {
+        let config = UserConfig::default();
+
+        // Serialize and deserialize
+        let toml_str = toml::to_string_pretty(&config).unwrap();
+        let parsed: UserConfig = toml::from_str(&toml_str).unwrap();
+
+        assert_eq!(parsed.model.provider, config.model.provider);
+        assert_eq!(parsed.sandbox.network, config.sandbox.network);
+    }
 }

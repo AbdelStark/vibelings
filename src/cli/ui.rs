@@ -722,6 +722,19 @@ mod tests {
     }
 
     #[test]
+    fn test_truncate_str_edge_cases() {
+        // Exact length
+        assert_eq!(truncate_str("hello", 5), "hello");
+        // Empty string
+        assert_eq!(truncate_str("", 10), "");
+        // Very short max (less than ellipsis)
+        assert_eq!(truncate_str("hello", 2), "..");
+        assert_eq!(truncate_str("hello", 3), "...");
+        // Unicode characters
+        assert_eq!(truncate_str("héllo", 10), "héllo");
+    }
+
+    #[test]
     fn test_wrap_text() {
         let text = "This is a test of text wrapping";
         let lines = wrap_text(text, 15);
@@ -729,5 +742,103 @@ mod tests {
         for line in &lines {
             assert!(console::measure_text_width(line) <= 15);
         }
+    }
+
+    #[test]
+    fn test_wrap_text_edge_cases() {
+        // Empty string
+        let lines = wrap_text("", 10);
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0], "");
+
+        // Single word longer than width
+        let lines = wrap_text("superlongword", 5);
+        assert!(!lines.is_empty());
+
+        // Multiple spaces between words
+        let lines = wrap_text("word1    word2", 20);
+        assert_eq!(lines.len(), 1);
+        assert!(lines[0].contains("word1"));
+        assert!(lines[0].contains("word2"));
+
+        // Single word that fits exactly
+        let lines = wrap_text("hello", 5);
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0], "hello");
+    }
+
+    #[test]
+    fn test_icons_constants() {
+        // Verify icon constants have content (using len() to avoid const_is_empty warning)
+        assert!(icons::CHECK.len() > 0);
+        assert!(icons::CROSS.len() > 0);
+        assert!(icons::WARNING.len() > 0);
+        assert!(icons::PENDING.len() > 0);
+        assert!(icons::COMPLETED.len() > 0);
+    }
+
+    #[test]
+    fn test_box_chars_constants() {
+        // Verify box drawing characters have content
+        assert!(box_chars::TOP_LEFT.len() > 0);
+        assert!(box_chars::TOP_RIGHT.len() > 0);
+        assert!(box_chars::BOTTOM_LEFT.len() > 0);
+        assert!(box_chars::BOTTOM_RIGHT.len() > 0);
+        assert!(box_chars::HORIZONTAL.len() > 0);
+        assert!(box_chars::VERTICAL.len() > 0);
+    }
+
+    #[test]
+    fn test_status_symbol_all_variants() {
+        use crate::ExerciseStatus;
+
+        // All variants should return a non-empty string
+        let pending = status_symbol(&ExerciseStatus::Pending);
+        let in_progress = status_symbol(&ExerciseStatus::InProgress);
+        let completed = status_symbol(&ExerciseStatus::Completed);
+        let flaky = status_symbol(&ExerciseStatus::Flaky);
+        let needs_reruns = status_symbol(&ExerciseStatus::NeedsReruns);
+        let experimental = status_symbol(&ExerciseStatus::Experimental);
+
+        assert!(!pending.is_empty());
+        assert!(!in_progress.is_empty());
+        assert!(!completed.is_empty());
+        assert!(!flaky.is_empty());
+        assert!(!needs_reruns.is_empty());
+        assert!(!experimental.is_empty());
+    }
+
+    #[test]
+    fn test_status_badge_all_variants() {
+        use crate::ExerciseStatus;
+
+        // All variants should return a non-empty string
+        let pending = status_badge(&ExerciseStatus::Pending);
+        let in_progress = status_badge(&ExerciseStatus::InProgress);
+        let completed = status_badge(&ExerciseStatus::Completed);
+        let flaky = status_badge(&ExerciseStatus::Flaky);
+        let needs_reruns = status_badge(&ExerciseStatus::NeedsReruns);
+        let experimental = status_badge(&ExerciseStatus::Experimental);
+
+        assert!(!pending.is_empty());
+        assert!(!in_progress.is_empty());
+        assert!(!completed.is_empty());
+        assert!(!flaky.is_empty());
+        assert!(!needs_reruns.is_empty());
+        assert!(!experimental.is_empty());
+    }
+
+    #[test]
+    fn test_key_hint() {
+        let hint = key_hint("h", "help");
+        assert!(hint.contains("h"));
+        assert!(hint.contains("help"));
+    }
+
+    #[test]
+    fn test_term_width() {
+        // Should return a reasonable width (at least 1)
+        let width = term_width();
+        assert!(width >= 1);
     }
 }
