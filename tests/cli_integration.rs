@@ -265,7 +265,7 @@ fn test_run_with_verbose() {
         .arg("nonexistent/exercise")
         .current_dir(temp_dir.path())
         .assert()
-        .failure();  // Fails because exercise doesn't exist, but flag is accepted
+        .failure(); // Fails because exercise doesn't exist, but flag is accepted
 }
 
 #[test]
