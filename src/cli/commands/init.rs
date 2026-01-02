@@ -1,5 +1,6 @@
-//! Initialize command implementation.
+//! Initialize command implementation - beautiful setup experience.
 
+use crate::cli::ui::{self, icons};
 use crate::config::load_or_create_config;
 use crate::Result;
 use console::style;
@@ -8,18 +9,22 @@ use std::path::Path;
 
 /// Run the init command.
 pub async fn run(track: Option<&str>) -> Result<()> {
+    // Beautiful header
+    ui::print_header();
+
     println!(
-        "{}",
-        style("🎯 Initializing vibelings workspace...")
-            .cyan()
-            .bold()
+        "  {} {}",
+        icons::ROCKET,
+        style("Setting up your learning environment...").cyan()
     );
+    println!();
+
+    let spinner = ui::create_spinner("Initializing workspace...");
 
     // Create exercises directory
     let exercises_dir = Path::new("exercises");
     if !exercises_dir.exists() {
         fs::create_dir_all(exercises_dir)?;
-        println!("  {} Created exercises/ directory", style("✓").green());
     }
 
     // Create workspace directory structure
@@ -28,13 +33,24 @@ pub async fn run(track: Option<&str>) -> Result<()> {
         let track_dir = exercises_dir.join(track_name);
         if !track_dir.exists() {
             fs::create_dir_all(&track_dir)?;
-            println!("  {} Created exercises/{}/", style("✓").green(), track_name);
         }
     }
 
+    spinner.finish_and_clear();
+
+    // Show checklist of created items
+    println!(
+        "  {} Created exercises/ directory",
+        style(icons::CHECK).green()
+    );
+    println!(
+        "  {} Created track directories",
+        style(icons::CHECK).green()
+    );
+
     // Create or load config
     let _config = load_or_create_config()?;
-    println!("  {} Configuration ready", style("✓").green());
+    println!("  {} Configuration ready", style(icons::CHECK).green());
 
     // Create local config file if it doesn't exist
     let local_config_path = Path::new(".vibelings.toml");
@@ -51,7 +67,7 @@ pub async fn run(track: Option<&str>) -> Result<()> {
 # timeout_seconds = 60
 "#;
         fs::write(local_config_path, local_config)?;
-        println!("  {} Created .vibelings.toml", style("✓").green());
+        println!("  {} Created .vibelings.toml", style(icons::CHECK).green());
     }
 
     // Create README for exercises
@@ -80,29 +96,67 @@ This directory contains the exercise content for your vibelings learning journey
 Run `vibelings` in this directory to start the interactive learning experience.
 "#;
         fs::write(&exercises_readme, readme_content)?;
-        println!("  {} Created exercises/README.md", style("✓").green());
+        println!(
+            "  {} Created exercises/README.md",
+            style(icons::CHECK).green()
+        );
     }
 
+    // Success message
     println!();
     println!(
         "{}",
-        style("✅ Workspace initialized successfully!")
-            .green()
-            .bold()
+        style("  ╭─────────────────────────────────────────╮").green()
+    );
+    println!(
+        "  {}   {}  {}        {}",
+        style("│").green(),
+        icons::SPARKLE,
+        style("Workspace ready!").green().bold(),
+        style("│").green()
+    );
+    println!(
+        "{}",
+        style("  ╰─────────────────────────────────────────╯").green()
     );
     println!();
 
     if let Some(track_name) = track {
-        println!("Starting with track: {}", style(track_name).yellow().bold());
-    } else {
-        println!("Run {} to start learning!", style("vibelings").cyan());
+        println!(
+            "  {} Starting with track: {}",
+            icons::ARROW_RIGHT,
+            style(track_name).yellow().bold()
+        );
+        println!();
     }
 
+    // Quick start guide
+    println!("  {}", style("Quick Start:").white().bold());
     println!();
-    println!("{}:", style("Quick start").bold());
-    println!("  {} - Check your setup", style("vibelings doctor").cyan());
-    println!("  {} - List all exercises", style("vibelings list").cyan());
-    println!("  {} - Start watch mode", style("vibelings").cyan());
+    println!(
+        "     {}  {}   Check your setup",
+        style("1.").dim(),
+        style("vibelings doctor").cyan()
+    );
+    println!(
+        "     {}  {}   List all exercises",
+        style("2.").dim(),
+        style("vibelings list").cyan()
+    );
+    println!(
+        "     {}  {}   Start learning!",
+        style("3.").dim(),
+        style("vibelings").cyan()
+    );
+    println!();
+
+    // Motivational footer
+    println!(
+        "  {} {}",
+        icons::HEART,
+        style("Happy learning! Build reliable agentic systems.").dim()
+    );
+    println!();
 
     Ok(())
 }

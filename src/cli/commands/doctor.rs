@@ -1,5 +1,6 @@
-//! Doctor command implementation.
+//! Doctor command implementation - beautiful health checks.
 
+use crate::cli::ui::{self, icons};
 use crate::config::{load_or_create_config, ProviderType};
 use crate::provider::{create_provider, CompletionRequest, Message, ModelProvider};
 use crate::Result;
@@ -9,152 +10,213 @@ use console::style;
 ///
 /// If `full` is true, performs an actual API connectivity test.
 pub async fn run(full: bool) -> Result<()> {
-    println!("{}", style("🩺 Vibelings Doctor").cyan().bold());
-    println!();
+    ui::print_command_header(icons::STETHOSCOPE, "System Health Check");
 
     let mut all_ok = true;
+    let mut checks_passed = 0;
+    let total_checks = if full { 5 } else { 4 };
 
-    // Check configuration
-    print!("  Configuration... ");
+    // Check 1: Configuration
+    print_check_start("Configuration");
     match load_or_create_config() {
         Ok(config) => {
-            println!("{}", style("✓").green());
+            print_check_pass(None);
+            checks_passed += 1;
 
-            // Check provider configuration
-            print!("  Provider ({})... ", config.model.provider);
+            // Check 2: Provider configuration
+            print_check_start(&format!("Provider ({})", config.model.provider));
             let api_key_ok = match config.model.provider {
                 ProviderType::OpenRouter => {
                     if std::env::var(&config.openrouter.api_key_env).is_ok() {
-                        println!("{}", style("✓").green());
+                        print_check_pass(None);
+                        checks_passed += 1;
                         true
                     } else {
-                        println!(
-                            "{} (set {} environment variable)",
-                            style("✗").red(),
+                        print_check_fail(&format!(
+                            "Set {} environment variable",
                             config.openrouter.api_key_env
-                        );
+                        ));
                         all_ok = false;
                         false
                     }
                 }
                 ProviderType::OpenAI => {
                     if std::env::var("OPENAI_API_KEY").is_ok() {
-                        println!("{}", style("✓").green());
+                        print_check_pass(None);
+                        checks_passed += 1;
                         true
                     } else {
-                        println!(
-                            "{} (set OPENAI_API_KEY environment variable)",
-                            style("✗").red()
-                        );
+                        print_check_fail("Set OPENAI_API_KEY environment variable");
                         all_ok = false;
                         false
                     }
                 }
                 ProviderType::Anthropic => {
                     if std::env::var("ANTHROPIC_API_KEY").is_ok() {
-                        println!("{}", style("✓").green());
+                        print_check_pass(None);
+                        checks_passed += 1;
                         true
                     } else {
-                        println!(
-                            "{} (set ANTHROPIC_API_KEY environment variable)",
-                            style("✗").red()
-                        );
+                        print_check_fail("Set ANTHROPIC_API_KEY environment variable");
                         all_ok = false;
                         false
                     }
                 }
                 ProviderType::Local => {
-                    println!("{}", style("✓").green());
+                    print_check_pass(None);
+                    checks_passed += 1;
                     true
                 }
             };
 
-            // Try to create provider
-            print!("  Model access... ");
+            // Check 3: Model access
+            print_check_start("Model access");
             match create_provider(&config) {
                 Ok(provider) => {
-                    println!("{} ({})", style("✓").green(), config.model.model);
+                    print_check_pass(Some(&config.model.model));
+                    checks_passed += 1;
 
-                    // Perform full API test if requested and API key is configured
-                    if full && api_key_ok {
-                        print!("  API connectivity... ");
-                        match test_api_connectivity(&*provider, &config.model.model).await {
-                            Ok(tokens) => {
-                                println!("{} ({} tokens used)", style("✓").green(), tokens);
+                    // Check 4: API connectivity (if full mode and API key is configured)
+                    if full {
+                        if api_key_ok {
+                            print_check_start("API connectivity");
+                            let spinner = ui::create_spinner("Testing connection...");
+                            match test_api_connectivity(&*provider, &config.model.model).await {
+                                Ok(tokens) => {
+                                    spinner.finish_and_clear();
+                                    print_check_pass(Some(&format!("{} tokens used", tokens)));
+                                    checks_passed += 1;
+                                }
+                                Err(e) => {
+                                    spinner.finish_and_clear();
+                                    print_check_fail(&e);
+                                    all_ok = false;
+                                }
                             }
-                            Err(e) => {
-                                println!("{} ({})", style("✗").red(), e);
-                                all_ok = false;
-                            }
+                        } else {
+                            print_check_start("API connectivity");
+                            print_check_warn("Skipped (no API key)");
                         }
-                    } else if full && !api_key_ok {
-                        println!(
-                            "  API connectivity... {} (skipped, no API key)",
-                            style("⚠").yellow()
-                        );
                     }
                 }
                 Err(e) => {
-                    println!("{} ({})", style("✗").red(), e);
+                    print_check_fail(&e.to_string());
                     all_ok = false;
                 }
             }
         }
         Err(e) => {
-            println!("{} ({})", style("✗").red(), e);
+            print_check_fail(&e.to_string());
             all_ok = false;
         }
     }
 
-    // Check exercises directory
-    print!("  Exercises directory... ");
+    // Check 4/5: Exercises directory
+    print_check_start("Exercises directory");
     if std::path::Path::new("exercises").exists() {
         let count = std::fs::read_dir("exercises")
             .map(|d| d.count())
             .unwrap_or(0);
-        println!("{} ({} tracks)", style("✓").green(), count);
+        print_check_pass(Some(&format!("{} tracks", count)));
+        checks_passed += 1;
     } else {
-        println!("{} (run 'vibelings init' first)", style("✗").red());
+        print_check_fail("Run 'vibelings init' first");
         all_ok = false;
     }
 
-    // Check required tools
-    print!("  jq (JSON processor)... ");
+    // Check 5/6: Optional tools
+    print_check_start("jq (JSON processor)");
     if which_exists("jq") {
-        println!("{}", style("✓").green());
+        print_check_pass(None);
     } else {
-        println!(
-            "{} (optional, install for better JSON handling)",
-            style("⚠").yellow()
-        );
+        print_check_warn("Optional - install for better JSON handling");
     }
 
+    // Summary
     println!();
+    ui::section_header("Summary");
+    println!();
+
     if all_ok {
         println!(
-            "{}",
-            style("✅ All checks passed! You're ready to go.")
+            "  {} {}",
+            icons::TROPHY,
+            style("All checks passed! You're ready to go.")
                 .green()
                 .bold()
         );
+
+        // Progress bar showing checks
+        let bar_width = 20;
+        let filled: String = "━".repeat(bar_width);
+        println!();
+        println!(
+            "     [{}] {}/{}",
+            style(filled).green(),
+            style(checks_passed).green().bold(),
+            style(total_checks).white()
+        );
     } else {
         println!(
-            "{}",
-            style("⚠️  Some checks failed. Please fix the issues above.")
+            "  {} {}",
+            icons::WARNING,
+            style("Some checks failed. Please fix the issues above.")
                 .yellow()
                 .bold()
+        );
+
+        let filled = (checks_passed * 20) / total_checks;
+        let empty = 20 - filled;
+        println!();
+        println!(
+            "     [{}{}] {}/{}",
+            style("━".repeat(filled)).green(),
+            style("─".repeat(empty)).dim(),
+            style(checks_passed).yellow().bold(),
+            style(total_checks).white()
         );
     }
 
     if !full {
         println!();
         println!(
-            "{}",
-            style("Tip: Run 'vibelings doctor --full' to test API connectivity").dim()
+            "  {} Run {} for full API connectivity test",
+            icons::INFO,
+            style("vibelings doctor --full").cyan()
         );
     }
 
+    println!();
+
     Ok(())
+}
+
+fn print_check_start(name: &str) {
+    print!("  {} {}... ", icons::BULLET, name);
+}
+
+fn print_check_pass(detail: Option<&str>) {
+    if let Some(d) = detail {
+        println!("{} ({})", style(icons::CHECK).green(), style(d).dim());
+    } else {
+        println!("{}", style(icons::CHECK).green());
+    }
+}
+
+fn print_check_fail(reason: &str) {
+    println!(
+        "{} {}",
+        style(icons::CROSS).red(),
+        style(reason).red().dim()
+    );
+}
+
+fn print_check_warn(reason: &str) {
+    println!(
+        "{} {}",
+        style(icons::WARNING).yellow(),
+        style(reason).yellow().dim()
+    );
 }
 
 /// Test API connectivity with a minimal request.

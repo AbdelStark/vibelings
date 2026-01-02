@@ -13,6 +13,7 @@
 //! - `vibelings reset <exercise>` - Reset exercise to starter state
 
 mod commands;
+pub mod ui;
 
 pub use commands::{Cli, Commands};
 
