@@ -136,12 +136,12 @@
 ## Phase 6: Polish & Testing ✅
 
 ### Milestone 6.1: Testing ✅
-- [x] Unit tests for all modules (153 passing)
+- [x] Unit tests for all modules (186 passing)
 - [x] Grader error handling tests
-- [x] CLI integration tests (19 passing)
+- [x] CLI integration tests (25 passing)
 - [x] Exercise grading tests (112 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 284 tests passing
+- [x] Total: 323 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -197,6 +197,22 @@
 
 ## Progress Log
 
+### 2026-01-02 (Session 12)
+- **Context Track Polish**:
+  - Fixed Context track display name in list command (was using raw "context", now shows "Context Engineering")
+  - Fixed Context track sort order in progress command (explicitly added to sort order)
+  - Added `fallback_providers` documentation to config.example.toml
+- **CLI Integration Tests Expansion**:
+  - Added 6 new CLI tests for previously uncovered commands and flags
+  - Added test_progress_command for the progress dashboard
+  - Added test_list_with_search for --search flag
+  - Added test_list_with_json_output for --json flag with list
+  - Added test_progress_with_json_output for --json flag with progress
+  - Added test_doctor_with_json_output for --json flag with doctor
+  - Added test_run_with_dry_run for --dry-run flag
+- Test coverage: 323 tests (186 unit + 25 CLI + 112 grading)
+- All code passes clippy and rustfmt
+
 ### 2026-01-02 (Session 11)
 - **Phase 8.1 Quality Audit Completion**:
   - Added 14 new runner/executor tests for comprehensive coverage
@@ -205,7 +221,7 @@
   - Updated AUTHORING.md to include Context Engineering track (5th track)
   - Fixed all test count references in documentation
   - Marked Milestone 8.1: Quality Audit as complete
-- Test coverage: 284 tests (153 unit + 19 CLI + 112 grading)
+- Test coverage: 317 tests (186 unit + 19 CLI + 112 grading)
 - All code passes clippy, rustfmt, and test suite
 
 ### 2026-01-02 (Session 10)

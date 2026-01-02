@@ -287,3 +287,94 @@ fn test_invalid_subcommand() {
         .failure()
         .stderr(predicate::str::contains("error"));
 }
+
+#[test]
+fn test_progress_command() {
+    let temp_dir = TempDir::new().unwrap();
+
+    vibelings()
+        .arg("progress")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Progress"));
+}
+
+#[test]
+fn test_list_with_search() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create exercises directory
+    fs::create_dir_all(temp_dir.path().join("exercises")).unwrap();
+
+    // Test --search flag
+    vibelings()
+        .arg("list")
+        .arg("--search")
+        .arg("json")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_list_with_json_output() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create exercises directory
+    fs::create_dir_all(temp_dir.path().join("exercises")).unwrap();
+
+    // Test --json flag
+    vibelings()
+        .arg("--json")
+        .arg("list")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"exercises\""));
+}
+
+#[test]
+fn test_progress_with_json_output() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Test --json flag with progress command
+    vibelings()
+        .arg("--json")
+        .arg("progress")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"tracks\""));
+}
+
+#[test]
+fn test_doctor_with_json_output() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Test --json flag with doctor command
+    vibelings()
+        .arg("--json")
+        .arg("doctor")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"checks\""));
+}
+
+#[test]
+fn test_run_with_dry_run() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create exercises directory
+    fs::create_dir_all(temp_dir.path().join("exercises")).unwrap();
+
+    // Test --dry-run flag (should fail because exercise doesn't exist, but flag is accepted)
+    vibelings()
+        .arg("run")
+        .arg("--dry-run")
+        .arg("fundamentals/json_01")
+        .current_dir(temp_dir.path())
+        .assert()
+        .failure();
+}

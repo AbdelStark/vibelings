@@ -161,6 +161,7 @@ pub async fn run(
                 "mcp" => "MCP in Practice",
                 "workflows" => "Workflow Orchestration",
                 "production" => "Production Engineering",
+                "context" => "Context Engineering",
                 _ => &info.track,
             };
             print_track_header(display_name);
