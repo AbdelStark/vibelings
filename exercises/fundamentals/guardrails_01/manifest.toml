@@ -1,0 +1,22 @@
+[exercise]
+id = "guardrails_01"
+title = "Input/Output Validation"
+track = "fundamentals"
+prerequisites = ["error_01"]
+description = "Learn to validate inputs and outputs to prevent prompt injection and unsafe behavior"
+difficulty = 4
+
+[requirements]
+tool_calling = true
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 5
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "sandbox"
+schema_path = "tools_schema.json"
+invariants = ["check_guardrails.sh"]

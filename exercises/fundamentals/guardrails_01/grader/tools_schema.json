@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Customer support tool definitions with strict validation",
+  "tools": [
+    {
+      "name": "lookup_order",
+      "description": "Look up an order by ID",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "pattern": "^[0-9]{1,10}$",
+            "description": "Order ID (digits only, max 10 chars)"
+          }
+        },
+        "required": ["order_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "send_email",
+      "description": "Send an email to a verified customer",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            "maxLength": 100,
+            "description": "Email address (must be verified)"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Email subject"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Email body"
+          }
+        },
+        "required": ["to", "subject", "body"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
