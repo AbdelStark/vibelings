@@ -65,7 +65,7 @@ src/
    [exercise]
    id = "exercise_id"
    title = "Exercise Title"
-   track = "fundamentals"  # or "mcp", "workflows", "production"
+   track = "fundamentals"  # or "mcp", "workflows", "production", "context"
 
    [grader]
    type = "schema"  # or "invariants", "combined", "sandbox"

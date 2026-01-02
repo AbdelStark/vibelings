@@ -37,7 +37,7 @@ Like [Rustlings](https://github.com/rust-lang/rustlings) teaches Rust through sm
 ### Prerequisites
 
 - An API key from [OpenRouter](https://openrouter.ai) (or other supported provider)
-- Rust 1.70+ (only needed if building from source)
+- Rust 1.73+ (only needed if building from source)
 
 ### Installation
 

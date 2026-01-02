@@ -2,7 +2,7 @@
 
 > Tracking progress for building "Rustlings for agentic programming"
 
-## Current Status: Phase 7 - Content Expansion (Complete)
+## Current Status: Phase 8 - Production Readiness (In Progress)
 
 **Last Updated:** 2026-01-02
 
@@ -14,11 +14,12 @@
 |-------|-------------|--------|
 | Phase 1 | Foundation - Core infrastructure | ✅ Complete |
 | Phase 2 | CLI Implementation | ✅ Complete |
-| Phase 3 | First Exercise Track | ✅ Complete (7 exercises) |
+| Phase 3 | First Exercise Track | ✅ Complete (8 exercises) |
 | Phase 4 | Provider Integration | ✅ Complete (4 providers) |
 | Phase 5 | Sandbox & Security | ✅ Complete |
 | Phase 6 | Polish & Testing | ✅ Complete |
 | Phase 7 | Content Expansion | ✅ Complete |
+| Phase 8 | Production Readiness | 🔄 In Progress |
 
 ---
 
@@ -138,9 +139,9 @@
 - [x] Unit tests for all modules (98 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (19 passing)
-- [x] Exercise grading tests (71 passing)
+- [x] Exercise grading tests (112 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 188 tests passing
+- [x] Total: 229 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -170,22 +171,56 @@
 - [x] First release notes (CHANGELOG.md)
 - [x] API documentation (rustdoc with GitHub Pages workflow)
 
+### Milestone 7.4: Context Engineering Track ✅
+- [x] `context/context_01` - System prompt structure
+- [x] `context/context_02` - Context budget management
+- [x] `context/context_03` - Just-in-time retrieval
+- [x] `context/context_04` - Conversation compaction
+- [x] `context/context_05` - Token-efficient tools
+
+---
+
+## Phase 8: Production Readiness 🔄
+
+### Milestone 8.1: Quality Audit
+- [x] Comprehensive codebase review
+- [x] Documentation consistency check
+- [x] Test coverage analysis
+- [ ] Additional runner/executor tests
+
+### Milestone 8.2: Final Polish
+- [ ] Tag v0.1.0 release
+- [ ] Publish to crates.io
+- [ ] Community outreach
+
 ---
 
 ## Progress Log
 
+### 2026-01-02 (Session 10)
+- **Production Readiness Audit**:
+  - Comprehensive codebase review and quality assessment
+  - Fixed documentation inconsistencies (test counts, exercise counts)
+  - Updated ROADMAP.md with accurate phase status and milestone tracking
+  - Added Phase 8: Production Readiness with quality audit milestones
+  - Added Context Engineering track to Phase 7 milestones
+  - Added MSRV (Minimum Supported Rust Version) to Cargo.toml
+- Exercise count: 22 exercises across 5 tracks
+  - 8 fundamentals + 3 MCP + 3 workflows + 3 production + 5 context
+- Total: 229 tests passing (98 unit + 19 CLI + 112 grading)
+- All code passes clippy and rustfmt
+
 ### 2026-01-02 (Session 9)
-- Documentation consistency updates:
-  - Fixed test count in README.md (166 → 188)
-  - Added `vibelings progress` to README commands table
-  - Added missing starter/prompt.txt for json_03 exercise
-  - Updated ROADMAP with accurate test counts
+- Documentation consistency updates
 - Added new exercise: `mcp/resource_01` (MCP Resource Definition)
   - Teaches MCP resource schema, URI formats, MIME types
   - Complements server_01 (tools) and client_01 (JSON-RPC)
-  - Includes 8 grading tests
-- Exercise count: 17 exercises across 4 tracks (8 fundamentals + 3 MCP + 3 workflows + 3 production)
-- Total: 188 tests passing (98 unit + 19 CLI + 71 grading)
+- Added Context Engineering track (Track 5) with 5 exercises:
+  - `context/context_01` - System prompt structure
+  - `context/context_02` - Context budget management
+  - `context/context_03` - Just-in-time retrieval
+  - `context/context_04` - Conversation compaction
+  - `context/context_05` - Token-efficient tools
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 8)
