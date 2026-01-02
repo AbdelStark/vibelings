@@ -156,7 +156,7 @@ Reliability at scale:
 
 ## Configuration
 
-User configuration lives in `~/.config/vibelings/config.toml`:
+User configuration lives in `~/.config/vibelings/config.toml`. See [`config.example.toml`](config.example.toml) for a fully documented example.
 
 ```toml
 [model]
@@ -176,6 +176,15 @@ timeout_seconds = 30
 show_cost = true
 show_trace = true
 ```
+
+### Provider Options
+
+| Provider | Description | Setup |
+|----------|-------------|-------|
+| `openrouter` | Multi-provider API (default) | `export OPENROUTER_API_KEY="..."` |
+| `openai` | Direct OpenAI API | `export OPENAI_API_KEY="..."` |
+| `anthropic` | Direct Anthropic API | `export ANTHROPIC_API_KEY="..."` |
+| `local` | Local OpenAI-compatible server | Configure `base_url` in config |
 
 ## Grading Philosophy
 

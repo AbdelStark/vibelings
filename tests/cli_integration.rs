@@ -168,3 +168,124 @@ fn test_verify_command() {
         .assert()
         .success();
 }
+
+#[test]
+fn test_replay_nonexistent_run() {
+    let temp_dir = TempDir::new().unwrap();
+
+    vibelings()
+        .arg("replay")
+        .arg("nonexistent-run-id-12345")
+        .current_dir(temp_dir.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("not found").or(predicate::str::contains("Not found")));
+}
+
+#[test]
+fn test_init_idempotent() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // First init
+    vibelings()
+        .arg("init")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success();
+
+    // Second init should also succeed (idempotent)
+    vibelings()
+        .arg("init")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success();
+
+    // Verify directories still exist
+    assert!(temp_dir.path().join("exercises").exists());
+}
+
+#[test]
+fn test_doctor_full_flag() {
+    let temp_dir = TempDir::new().unwrap();
+
+    vibelings()
+        .arg("doctor")
+        .arg("--full")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Vibelings Doctor"));
+}
+
+#[test]
+fn test_list_all_flag() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create exercises directory
+    fs::create_dir_all(temp_dir.path().join("exercises")).unwrap();
+
+    // Test --all flag
+    vibelings()
+        .arg("list")
+        .arg("--all")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_hint_with_level() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create exercises directory
+    fs::create_dir_all(temp_dir.path().join("exercises")).unwrap();
+
+    // Hint with level for nonexistent exercise should fail
+    vibelings()
+        .arg("hint")
+        .arg("--level")
+        .arg("2")
+        .arg("fundamentals/json_01")
+        .current_dir(temp_dir.path())
+        .assert()
+        .failure();
+}
+
+#[test]
+fn test_run_with_verbose() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create exercises directory
+    fs::create_dir_all(temp_dir.path().join("exercises")).unwrap();
+
+    // Verbose flag should be accepted
+    vibelings()
+        .arg("run")
+        .arg("--verbose")
+        .arg("nonexistent/exercise")
+        .current_dir(temp_dir.path())
+        .assert()
+        .failure();  // Fails because exercise doesn't exist, but flag is accepted
+}
+
+#[test]
+fn test_cost_specific_exercise() {
+    let temp_dir = TempDir::new().unwrap();
+
+    vibelings()
+        .arg("cost")
+        .arg("--exercise")
+        .arg("fundamentals/json_01")
+        .current_dir(temp_dir.path())
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_invalid_subcommand() {
+    vibelings()
+        .arg("nonexistent-command")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("error"));
+}
