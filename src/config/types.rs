@@ -80,6 +80,10 @@ pub struct ModelConfig {
     /// Maximum tokens to generate
     #[serde(default)]
     pub max_tokens: Option<u32>,
+
+    /// Fallback providers to try if primary fails
+    #[serde(default)]
+    pub fallback_providers: Vec<ProviderType>,
 }
 
 fn default_model() -> String {
@@ -93,6 +97,7 @@ impl Default for ModelConfig {
             model: default_model(),
             temperature: 0.0,
             max_tokens: None,
+            fallback_providers: Vec::new(),
         }
     }
 }

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **JSON output mode**: Global `--json` flag for machine-readable output (supports `list`, `run`, `doctor`, `cost`, `verify`, `progress` commands) - enables scripting and CI integration
+- **Exercise search**: `vibelings list --search <query>` filters exercises by keyword (matches ID, title, description) - case-insensitive
+- **Progress dashboard**: `vibelings progress` shows curriculum overview with track-by-track progress, statistics, and motivational messages
+- **Provider fallback chain**: Configure `fallback_providers` in `[model]` section to automatically try alternative providers when primary fails (rate limiting, auth errors, server errors)
 - **ARM64 Linux support**: Release workflow now builds `aarch64-unknown-linux-gnu` binaries
 - **Example configuration**: Added `config.example.toml` with full documentation of all options
 - **Security policy**: Added `SECURITY.md` with responsible disclosure process
@@ -19,10 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **New exercise**: Added `fundamentals/json_03` - Array Contracts (teaches array validation and item-level constraints)
 - **Dry-run mode**: `vibelings run --dry-run` previews exercise without making API calls (shows requirements, schema, instructions)
 - **Performance benchmarks**: Added criterion benchmarks for schema validation and JSON parsing (`cargo bench`)
+- **Fixture system**: `FixtureStore` and `ToolFixture` types for deterministic tool responses in exercises - load mock responses from `fixtures/` directory for reproducible grading
 
 ### Changed
 
-- **Test coverage**: Added 43 new tests (166 tests total: 84 unit + 19 CLI + 63 grading)
+- **Test coverage**: Added 57 new tests (180 tests total: 98 unit + 19 CLI + 63 grading)
 - **Production readiness audit**: Improved sandbox executor tests, trace store tests, documentation consistency
 - **Better error messages**: All error types now include actionable hints (e.g., "Run: export API_KEY=..." for missing env vars)
 - **Exercise count**: Now 16 exercises across 4 tracks (8 fundamentals + 2 MCP + 3 workflows + 3 production)

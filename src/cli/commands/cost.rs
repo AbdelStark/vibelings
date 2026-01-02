@@ -1,17 +1,31 @@
 //! Cost command implementation - token usage and cost tracking.
 
+use crate::cli::commands::json_output::{print_json, CostOutput, CostSummary, ExerciseCost};
 use crate::cli::ui::{self, icons};
 use crate::config::load_progress;
 use crate::Result;
 use console::style;
 
 /// Run the cost command.
-pub async fn run(exercise: Option<&str>) -> Result<()> {
-    ui::print_command_header(icons::DOLLAR, "Token Usage & Costs");
-
+pub async fn run(exercise: Option<&str>, json_output: bool) -> Result<()> {
     let progress = load_progress().unwrap_or_default();
 
     if progress.exercises.is_empty() {
+        if json_output {
+            let output = CostOutput {
+                exercises: vec![],
+                summary: CostSummary {
+                    total_tokens: 0,
+                    total_cost_usd: 0.0,
+                    avg_tokens: 0,
+                    avg_cost_usd: 0.0,
+                    exercise_count: 0,
+                },
+            };
+            return print_json(&output);
+        }
+
+        ui::print_command_header(icons::DOLLAR, "Token Usage & Costs");
         println!(
             "  {} {}",
             icons::INFO,
@@ -40,6 +54,21 @@ pub async fn run(exercise: Option<&str>) -> Result<()> {
         .collect();
 
     if exercises.is_empty() {
+        if json_output {
+            let output = CostOutput {
+                exercises: vec![],
+                summary: CostSummary {
+                    total_tokens: 0,
+                    total_cost_usd: 0.0,
+                    avg_tokens: 0,
+                    avg_cost_usd: 0.0,
+                    exercise_count: 0,
+                },
+            };
+            return print_json(&output);
+        }
+
+        ui::print_command_header(icons::DOLLAR, "Token Usage & Costs");
         println!(
             "  {} {}",
             icons::INFO,
@@ -59,6 +88,43 @@ pub async fn run(exercise: Option<&str>) -> Result<()> {
     // Calculate totals
     let total_tokens: u64 = exercises.iter().map(|(_, d)| d.total_tokens).sum();
     let total_cost: f64 = exercises.iter().map(|(_, d)| d.total_cost).sum();
+    let exercise_count = exercises.len();
+    let avg_tokens = if exercise_count > 0 {
+        total_tokens / exercise_count as u64
+    } else {
+        0
+    };
+    let avg_cost = if exercise_count > 0 {
+        total_cost / exercise_count as f64
+    } else {
+        0.0
+    };
+
+    if json_output {
+        let exercise_costs: Vec<ExerciseCost> = exercises
+            .iter()
+            .map(|(id, data)| ExerciseCost {
+                id: (*id).clone(),
+                tokens: data.total_tokens,
+                cost_usd: data.total_cost,
+            })
+            .collect();
+
+        let output = CostOutput {
+            exercises: exercise_costs,
+            summary: CostSummary {
+                total_tokens,
+                total_cost_usd: total_cost,
+                avg_tokens,
+                avg_cost_usd: avg_cost,
+                exercise_count,
+            },
+        };
+        return print_json(&output);
+    }
+
+    // Human-readable output
+    ui::print_command_header(icons::DOLLAR, "Token Usage & Costs");
 
     // Table header
     println!(
@@ -108,18 +174,6 @@ pub async fn run(exercise: Option<&str>) -> Result<()> {
     println!();
     ui::section_header("Summary");
     println!();
-
-    let exercise_count = exercises.len();
-    let avg_cost = if exercise_count > 0 {
-        total_cost / exercise_count as f64
-    } else {
-        0.0
-    };
-    let avg_tokens = if exercise_count > 0 {
-        total_tokens / exercise_count as u64
-    } else {
-        0
-    };
 
     println!(
         "  {} Exercises tracked:   {}",

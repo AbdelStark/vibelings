@@ -1,5 +1,6 @@
 //! Run command implementation - execute a single exercise.
 
+use crate::cli::commands::json_output::{print_json, RunOutput};
 use crate::cli::ui::{self, icons};
 use crate::exercise::Exercise;
 use crate::runner::ExerciseRunner;
@@ -7,40 +8,56 @@ use crate::Result;
 use console::style;
 
 /// Run the run command.
-pub async fn run(exercise: &str, verbose: bool, dry_run: bool) -> Result<()> {
-    // Show exercise header
-    ui::print_command_header(icons::TARGET, &format!("Exercise: {}", exercise));
-
+pub async fn run(exercise: &str, verbose: bool, dry_run: bool, json_output: bool) -> Result<()> {
     let runner = ExerciseRunner::new()?;
 
     // Get exercise details
     let ex = runner.get_exercise(exercise)?;
 
-    println!(
-        "  {} {}",
-        style("Title:").dim(),
-        style(&ex.manifest.exercise.title).white().bold()
-    );
-    println!(
-        "  {} {}",
-        style("Track:").dim(),
-        style(ex.manifest.exercise.track.display_name()).cyan()
-    );
-    println!();
-
-    // Handle dry-run mode
+    // Handle dry-run mode (not supported with JSON output)
     if dry_run {
+        if json_output {
+            eprintln!("Warning: --json is not supported with --dry-run");
+        }
         return run_dry_run(&ex);
     }
 
-    // Show spinner while running
-    let spinner = ui::create_spinner("Running exercise...");
+    if !json_output {
+        // Show exercise header for human output
+        ui::print_command_header(icons::TARGET, &format!("Exercise: {}", exercise));
+        println!(
+            "  {} {}",
+            style("Title:").dim(),
+            style(&ex.manifest.exercise.title).white().bold()
+        );
+        println!(
+            "  {} {}",
+            style("Track:").dim(),
+            style(ex.manifest.exercise.track.display_name()).cyan()
+        );
+        println!();
 
-    let result = runner.run_exercise(exercise, verbose).await?;
+        // Show spinner while running
+        let spinner = ui::create_spinner("Running exercise...");
+        let result = runner.run_exercise(exercise, verbose).await?;
+        spinner.finish_and_clear();
 
-    spinner.finish_and_clear();
+        // Display results
+        display_human_result(&result);
+        Ok(())
+    } else {
+        // JSON output - no spinner, just run and output
+        let result = runner.run_exercise(exercise, verbose).await?;
+        let output = RunOutput {
+            exercise: exercise.to_string(),
+            result,
+        };
+        print_json(&output)
+    }
+}
 
-    // Display results
+/// Display human-readable result output.
+fn display_human_result(result: &crate::runner::RunResult) {
     if result.passed {
         ui::celebrate_pass();
         println!();
@@ -111,12 +128,24 @@ pub async fn run(exercise: &str, verbose: bool, dry_run: bool) -> Result<()> {
     }
 
     println!();
-
-    Ok(())
 }
 
 /// Run in dry-run mode: show exercise details without executing.
 fn run_dry_run(exercise: &Exercise) -> Result<()> {
+    // Show exercise header
+    ui::print_command_header(icons::TARGET, &format!("Exercise: {}", exercise.full_id()));
+    println!(
+        "  {} {}",
+        style("Title:").dim(),
+        style(&exercise.manifest.exercise.title).white().bold()
+    );
+    println!(
+        "  {} {}",
+        style("Track:").dim(),
+        style(exercise.manifest.exercise.track.display_name()).cyan()
+    );
+    println!();
+
     println!(
         "  {} {}",
         style(icons::INFO).cyan(),

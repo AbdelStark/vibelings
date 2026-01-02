@@ -4,7 +4,9 @@ pub mod cost;
 pub mod doctor;
 pub mod hint;
 pub mod init;
+pub mod json_output;
 pub mod list;
+pub mod progress;
 pub mod replay;
 pub mod reset;
 pub mod run;
@@ -19,6 +21,10 @@ use clap::{Parser, Subcommand};
 #[command(author, version, about, long_about = None)]
 #[command(propagate_version = true)]
 pub struct Cli {
+    /// Output results as JSON (for scripting and CI integration)
+    #[arg(long, global = true)]
+    pub json: bool,
+
     /// Subcommand to run (default: watch mode)
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -57,6 +63,10 @@ pub enum Commands {
         /// Show all exercises including locked ones
         #[arg(short, long)]
         all: bool,
+
+        /// Search exercises by keyword (matches ID, title, description)
+        #[arg(short, long)]
+        search: Option<String>,
     },
 
     /// Show hints for the current exercise
@@ -96,6 +106,9 @@ pub enum Commands {
         #[arg(short, long)]
         exercise: Option<String>,
     },
+
+    /// Show curriculum progress dashboard
+    Progress,
 
     /// Reset an exercise to its starter state
     Reset {

@@ -241,6 +241,7 @@ mod tests {
                 model: "openai/gpt-4".to_string(),
                 temperature: 0.0,
                 max_tokens: None,
+                fallback_providers: Vec::new(),
             },
             ..Default::default()
         };
