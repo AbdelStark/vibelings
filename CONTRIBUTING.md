@@ -78,7 +78,7 @@ exercises/<track>/<exercise_id>/
 [exercise]
 id = "my_exercise"
 title = "My Exercise Title"
-track = "fundamentals"  # or mcp, workflows, production
+track = "fundamentals"  # or mcp, workflows, production, context
 prerequisites = ["json_01"]  # Required completed exercises
 difficulty = 2  # 1-5 scale
 
