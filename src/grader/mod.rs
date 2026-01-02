@@ -418,10 +418,257 @@ impl Grader {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::exercise::{
+        Exercise, ExerciseManifest, ExerciseMetadata, ExerciseRequirements, ExerciseRunConfig,
+        ExerciseStatus, GraderConfig, GraderType, Track,
+    };
+    use tempfile::TempDir;
 
     #[test]
     fn test_grader_creation() {
         let grader = Grader::new();
         assert!(grader.is_ok());
+    }
+
+    fn create_test_exercise(grader_type: GraderType, temp_dir: &TempDir) -> Exercise {
+        let path = temp_dir.path().to_path_buf();
+        let grader_path = path.join("grader");
+        std::fs::create_dir_all(&grader_path).unwrap();
+
+        Exercise {
+            manifest: ExerciseManifest {
+                exercise: ExerciseMetadata {
+                    id: "test_exercise".to_string(),
+                    title: "Test Exercise".to_string(),
+                    track: Track::Fundamentals,
+                    prerequisites: vec![],
+                    description: None,
+                    difficulty: 1,
+                },
+                requirements: ExerciseRequirements::default(),
+                run: ExerciseRunConfig::default(),
+                grader: GraderConfig {
+                    grader_type,
+                    schema_path: None,
+                    invariants: vec![],
+                    rubric_path: None,
+                },
+            },
+            path: path.clone(),
+            status: ExerciseStatus::Pending,
+            readme_path: path.join("README.md"),
+            starter_path: path.join("starter"),
+            grader_path,
+            fixtures_path: None,
+        }
+    }
+
+    #[test]
+    fn test_sandbox_grading_valid_tool_calls() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{
+            "tool_calls": [
+                {
+                    "name": "get_weather",
+                    "arguments": {"location": "San Francisco"}
+                }
+            ]
+        }"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(result.passed);
+        assert!(result.message.contains("passed"));
+    }
+
+    #[test]
+    fn test_sandbox_grading_missing_tool_calls() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{"result": "no tools here"}"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(!result.passed);
+        assert!(result.message.contains("tool_calls"));
+    }
+
+    #[test]
+    fn test_sandbox_grading_invalid_json() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = "not valid json at all";
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(!result.passed);
+        assert!(result.message.contains("not valid JSON"));
+    }
+
+    #[test]
+    fn test_sandbox_grading_tool_calls_not_array() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{"tool_calls": "not an array"}"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(!result.passed);
+        assert!(result.message.contains("must be an array"));
+    }
+
+    #[test]
+    fn test_sandbox_grading_missing_tool_name() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{
+            "tool_calls": [
+                {"arguments": {"location": "NYC"}}
+            ]
+        }"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(!result.passed);
+        assert!(result.details.iter().any(|d| d.message.contains("missing 'name'")));
+    }
+
+    #[test]
+    fn test_sandbox_grading_missing_arguments() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{
+            "tool_calls": [
+                {"name": "get_weather"}
+            ]
+        }"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(!result.passed);
+        assert!(result.details.iter().any(|d| d.message.contains("missing 'arguments'")));
+    }
+
+    #[test]
+    fn test_sandbox_grading_with_schema_validation() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+
+        // Create exercise with schema
+        let path = temp_dir.path().to_path_buf();
+        let grader_path = path.join("grader");
+        std::fs::create_dir_all(&grader_path).unwrap();
+
+        // Write a tools schema file
+        let schema = r#"{
+            "tools": [
+                {
+                    "name": "get_weather",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {"type": "string", "minLength": 1}
+                        },
+                        "required": ["location"]
+                    }
+                }
+            ]
+        }"#;
+        std::fs::write(grader_path.join("tools.json"), schema).unwrap();
+
+        let exercise = Exercise {
+            manifest: ExerciseManifest {
+                exercise: ExerciseMetadata {
+                    id: "test_exercise".to_string(),
+                    title: "Test Exercise".to_string(),
+                    track: Track::Fundamentals,
+                    prerequisites: vec![],
+                    description: None,
+                    difficulty: 1,
+                },
+                requirements: ExerciseRequirements::default(),
+                run: ExerciseRunConfig::default(),
+                grader: GraderConfig {
+                    grader_type: GraderType::Sandbox,
+                    schema_path: Some("tools.json".to_string()),
+                    invariants: vec![],
+                    rubric_path: None,
+                },
+            },
+            path: path.clone(),
+            status: ExerciseStatus::Pending,
+            readme_path: path.join("README.md"),
+            starter_path: path.join("starter"),
+            grader_path,
+            fixtures_path: None,
+        };
+
+        // Valid tool call
+        let output = r#"{
+            "tool_calls": [
+                {"name": "get_weather", "arguments": {"location": "Boston"}}
+            ]
+        }"#;
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(result.passed);
+
+        // Invalid tool (unknown)
+        let output_unknown = r#"{
+            "tool_calls": [
+                {"name": "unknown_tool", "arguments": {"x": 1}}
+            ]
+        }"#;
+        let result_unknown = grader.grade(&exercise, output_unknown).unwrap();
+        assert!(!result_unknown.passed);
+        assert!(result_unknown.details.iter().any(|d| d.message.contains("Unknown tool")));
+
+        // Invalid arguments (missing required)
+        let output_missing = r#"{
+            "tool_calls": [
+                {"name": "get_weather", "arguments": {}}
+            ]
+        }"#;
+        let result_missing = grader.grade(&exercise, output_missing).unwrap();
+        assert!(!result_missing.passed);
+    }
+
+    #[test]
+    fn test_sandbox_grading_empty_tool_calls() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{"tool_calls": []}"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        // Empty tool_calls is valid - just no operations
+        assert!(result.passed);
+        assert!(result.details.is_empty());
+    }
+
+    #[test]
+    fn test_sandbox_grading_multiple_valid_tools() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Sandbox, &temp_dir);
+
+        let output = r#"{
+            "tool_calls": [
+                {"name": "read_file", "arguments": {"path": "/tmp/test.txt"}},
+                {"name": "write_file", "arguments": {"path": "/tmp/out.txt", "content": "hello"}},
+                {"name": "run_tests", "arguments": {}}
+            ]
+        }"#;
+
+        let result = grader.grade(&exercise, output).unwrap();
+        assert!(result.passed);
+        assert_eq!(result.details.len(), 3);
     }
 }
