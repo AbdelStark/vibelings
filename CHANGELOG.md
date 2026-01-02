@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **JSON output mode**: Global `--json` flag for machine-readable output (supports `list`, `run`, `doctor`, `cost`, `verify`, `progress` commands) - enables scripting and CI integration
 - **Exercise search**: `vibelings list --search <query>` filters exercises by keyword (matches ID, title, description) - case-insensitive
 - **Progress dashboard**: `vibelings progress` shows curriculum overview with track-by-track progress, statistics, and motivational messages
+- **Provider fallback chain**: Configure `fallback_providers` in `[model]` section to automatically try alternative providers when primary fails (rate limiting, auth errors, server errors)
 - **ARM64 Linux support**: Release workflow now builds `aarch64-unknown-linux-gnu` binaries
 - **Example configuration**: Added `config.example.toml` with full documentation of all options
 - **Security policy**: Added `SECURITY.md` with responsible disclosure process

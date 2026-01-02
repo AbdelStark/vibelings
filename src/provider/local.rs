@@ -258,6 +258,7 @@ mod tests {
                 model: "local/llama3".to_string(),
                 temperature: 0.0,
                 max_tokens: None,
+                fallback_providers: Vec::new(),
             },
             ..Default::default()
         };
