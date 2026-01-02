@@ -136,7 +136,7 @@
 - [ ] CI/CD setup
 
 ### Milestone 6.2: Documentation
-- [ ] README.md with usage instructions
+- [x] README.md with usage instructions
 - [ ] AGENTS.md for agent guidance
 - [ ] Exercise authoring guide
 - [ ] API documentation
