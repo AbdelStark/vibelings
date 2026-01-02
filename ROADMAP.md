@@ -138,10 +138,10 @@
 ### Milestone 6.1: Testing ✅
 - [x] Unit tests for all modules (153 passing)
 - [x] Grader error handling tests
-- [x] CLI integration tests (19 passing)
+- [x] CLI integration tests (25 passing)
 - [x] Exercise grading tests (112 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 284 tests passing
+- [x] Total: 290 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -202,7 +202,15 @@
   - Fixed Context track display name in list command (was using raw "context", now shows "Context Engineering")
   - Fixed Context track sort order in progress command (explicitly added to sort order)
   - Added `fallback_providers` documentation to config.example.toml
-- All 112 grading tests, 153 unit tests, and 19 CLI tests still passing
+- **CLI Integration Tests Expansion**:
+  - Added 6 new CLI tests for previously uncovered commands and flags
+  - Added test_progress_command for the progress dashboard
+  - Added test_list_with_search for --search flag
+  - Added test_list_with_json_output for --json flag with list
+  - Added test_progress_with_json_output for --json flag with progress
+  - Added test_doctor_with_json_output for --json flag with doctor
+  - Added test_run_with_dry_run for --dry-run flag
+- Test coverage: 290 tests (153 unit + 25 CLI + 112 grading)
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 11)
