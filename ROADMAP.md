@@ -136,12 +136,12 @@
 ## Phase 6: Polish & Testing ✅
 
 ### Milestone 6.1: Testing ✅
-- [x] Unit tests for all modules (130 passing)
+- [x] Unit tests for all modules (153 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (19 passing)
 - [x] Exercise grading tests (112 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 261 tests passing
+- [x] Total: 284 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -201,10 +201,11 @@
 - **Phase 8.1 Quality Audit Completion**:
   - Added 14 new runner/executor tests for comprehensive coverage
   - Added 16 new exercise module tests (Track, Status, GraderType, Exercise methods)
+  - Added 23 new error module tests (all error types and conversions)
   - Updated AUTHORING.md to include Context Engineering track (5th track)
   - Fixed all test count references in documentation
   - Marked Milestone 8.1: Quality Audit as complete
-- Test coverage: 261 tests (130 unit + 19 CLI + 112 grading)
+- Test coverage: 284 tests (153 unit + 19 CLI + 112 grading)
 - All code passes clippy, rustfmt, and test suite
 
 ### 2026-01-02 (Session 10)
