@@ -1,0 +1,21 @@
+[exercise]
+id = "client_01"
+title = "MCP Tool Call Request"
+track = "mcp"
+prerequisites = ["server_01"]
+description = "Learn to construct valid MCP JSON-RPC tool call requests"
+difficulty = 2
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

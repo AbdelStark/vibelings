@@ -1,0 +1,16 @@
+Define an MCP tool called "calculate_area" that calculates the area of geometric shapes.
+
+The tool should accept the following parameters:
+- shape: A string enum with values "circle", "rectangle", or "triangle"
+- radius: A number for circle calculations
+- width: A number for rectangle width
+- height: A number for rectangle and triangle height
+- base: A number for triangle base
+
+Requirements:
+1. Use MCP tool definition format (inputSchema, not parameters)
+2. The shape parameter is required
+3. All numeric parameters should be type "number"
+4. Include appropriate descriptions for the tool and each parameter
+
+Output only the JSON tool definition, no explanation.
