@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Test coverage**: 290 tests total (153 unit + 25 CLI + 112 grading)
+- **Test coverage**: 323 tests total (186 unit + 25 CLI + 112 grading)
 - **Exercise count**: 22 exercises across 5 tracks (8 fundamentals + 3 MCP + 3 workflows + 3 production + 5 context)
 - **Documentation**: Updated ROADMAP.md with Phase 8 (Production Readiness), fixed test/exercise counts
 - **Cargo.toml**: Added MSRV, homepage, documentation URL, crates.io metadata

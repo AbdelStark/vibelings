@@ -136,12 +136,12 @@
 ## Phase 6: Polish & Testing ✅
 
 ### Milestone 6.1: Testing ✅
-- [x] Unit tests for all modules (153 passing)
+- [x] Unit tests for all modules (186 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (25 passing)
 - [x] Exercise grading tests (112 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 290 tests passing
+- [x] Total: 323 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -210,7 +210,7 @@
   - Added test_progress_with_json_output for --json flag with progress
   - Added test_doctor_with_json_output for --json flag with doctor
   - Added test_run_with_dry_run for --dry-run flag
-- Test coverage: 290 tests (153 unit + 25 CLI + 112 grading)
+- Test coverage: 323 tests (186 unit + 25 CLI + 112 grading)
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 11)
@@ -221,7 +221,7 @@
   - Updated AUTHORING.md to include Context Engineering track (5th track)
   - Fixed all test count references in documentation
   - Marked Milestone 8.1: Quality Audit as complete
-- Test coverage: 284 tests (153 unit + 19 CLI + 112 grading)
+- Test coverage: 317 tests (186 unit + 19 CLI + 112 grading)
 - All code passes clippy, rustfmt, and test suite
 
 ### 2026-01-02 (Session 10)
