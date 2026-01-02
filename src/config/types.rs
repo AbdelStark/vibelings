@@ -449,4 +449,70 @@ timeout_seconds = 60
         assert_eq!(ex_progress.successful_runs, 2);
         assert_eq!(ex_progress.total_runs, 2);
     }
+
+    #[test]
+    fn test_openai_config_defaults() {
+        let config = OpenAIConfig::default();
+        assert_eq!(config.api_key_env, "OPENAI_API_KEY");
+        assert!(config.org_id_env.is_none());
+    }
+
+    #[test]
+    fn test_anthropic_config_defaults() {
+        let config = AnthropicConfig::default();
+        assert_eq!(config.api_key_env, "ANTHROPIC_API_KEY");
+    }
+
+    #[test]
+    fn test_local_config_defaults() {
+        let config = LocalConfig::default();
+        assert_eq!(config.base_url, "http://localhost:11434/v1");
+        assert!(config.api_key.is_none());
+    }
+
+    #[test]
+    fn test_full_config_with_all_providers() {
+        let toml_str = r#"
+[model]
+provider = "anthropic"
+model = "claude-sonnet-4-20250514"
+temperature = 0.1
+
+[openrouter]
+api_key_env = "MY_OR_KEY"
+zdr = true
+
+[openai]
+api_key_env = "MY_OPENAI_KEY"
+org_id_env = "MY_ORG"
+
+[anthropic]
+api_key_env = "MY_ANTHROPIC_KEY"
+
+[local]
+base_url = "http://localhost:8000/v1"
+api_key = "local-key"
+
+[sandbox]
+network = true
+timeout_seconds = 120
+"#;
+        let config: UserConfig = toml::from_str(toml_str).unwrap();
+
+        // Check model config
+        assert_eq!(config.model.provider, ProviderType::Anthropic);
+        assert_eq!(config.model.temperature, 0.1);
+
+        // Check provider configs
+        assert_eq!(config.openrouter.api_key_env, "MY_OR_KEY");
+        assert_eq!(config.openai.api_key_env, "MY_OPENAI_KEY");
+        assert_eq!(config.openai.org_id_env, Some("MY_ORG".to_string()));
+        assert_eq!(config.anthropic.api_key_env, "MY_ANTHROPIC_KEY");
+        assert_eq!(config.local.base_url, "http://localhost:8000/v1");
+        assert_eq!(config.local.api_key, Some("local-key".to_string()));
+
+        // Check sandbox
+        assert!(config.sandbox.network);
+        assert_eq!(config.sandbox.timeout_seconds, 120);
+    }
 }

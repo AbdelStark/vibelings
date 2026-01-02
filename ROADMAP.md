@@ -185,7 +185,9 @@
   - Retries transient connection errors
   - Configurable retry count, delays, and backoff multiplier
 - Added `create_provider_with_retry()` factory function
-- Total: 140 tests passing (64 unit + 19 CLI + 57 grading)
+- Updated ExerciseRunner to use retry-enabled provider
+- Added unit tests for new config types
+- Total: 144 tests passing (68 unit + 19 CLI + 57 grading)
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 7)

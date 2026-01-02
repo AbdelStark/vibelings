@@ -19,9 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Test coverage**: Added 17 new tests (140 tests total: 64 unit + 19 CLI + 57 grading)
+- **Test coverage**: Added 21 new tests (144 tests total: 68 unit + 19 CLI + 57 grading)
 - **README**: Improved configuration documentation with provider options
 - **Provider config**: OpenAI, Anthropic, and Local providers now read API key env var names from their config sections
+- **Exercise runner**: Now uses retry-enabled provider for automatic rate limiting handling
 
 ## [0.1.0] - 2026-01-02
 
