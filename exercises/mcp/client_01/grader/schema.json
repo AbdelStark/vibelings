@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Tool Call Request",
+  "description": "Valid JSON-RPC 2.0 request for MCP tools/call",
+  "type": "object",
+  "properties": {
+    "jsonrpc": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "id": {
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "integer" }
+      ]
+    },
+    "method": {
+      "type": "string",
+      "const": "tools/call"
+    },
+    "params": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "const": "calculate_area"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "circle"
+            },
+            "radius": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": ["shape", "radius"]
+        }
+      },
+      "required": ["name", "arguments"]
+    }
+  },
+  "required": ["jsonrpc", "id", "method", "params"],
+  "additionalProperties": false
+}

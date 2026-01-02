@@ -85,8 +85,13 @@
 ### Milestone 3.3: First Exercises ✅
 - [x] `fundamentals/json_01` - Basic JSON schema compliance
 - [x] `fundamentals/json_02` - Complex nested schemas
-- [ ] `tools/basic_01` - Simple tool calling (TODO)
-- [ ] `tools/basic_02` - Tool with validation (TODO)
+- [x] `fundamentals/tools_01` - Basic tool calling
+- [x] `fundamentals/tools_02` - Tool sequence validation
+- [x] `fundamentals/error_01` - Error handling
+- [x] `fundamentals/guardrails_01` - Input/output validation
+- [x] `fundamentals/observability_01` - Logging and observability
+- [x] `mcp/server_01` - MCP tool definition
+- [x] `mcp/client_01` - MCP JSON-RPC tool call request
 
 ---
 
@@ -103,10 +108,10 @@
 - [x] Implement ZDR and privacy controls
 - [ ] Add fallback handling (partial)
 
-### Milestone 4.3: Direct Providers
-- [ ] OpenAI provider (TODO)
+### Milestone 4.3: Direct Providers ✅
+- [x] OpenAI provider
 - [x] Anthropic provider
-- [ ] Local endpoint support (Ollama, vLLM) (TODO)
+- [x] Local endpoint support (Ollama, vLLM, LM Studio, etc.)
 
 ---
 
@@ -129,16 +134,16 @@
 ## Phase 6: Polish & Testing 🚧
 
 ### Milestone 6.1: Testing 🚧
-- [x] Unit tests for all modules (41 passing)
+- [x] Unit tests for all modules (54 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (11 passing)
-- [x] Exercise grading tests (26 passing)
+- [x] Exercise grading tests (41 passing)
 - [x] CI/CD setup (GitHub Actions)
 
-### Milestone 6.2: Documentation
+### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
 - [x] AGENTS.md for agent guidance
-- [ ] Exercise authoring guide
+- [x] Exercise authoring guide (docs/AUTHORING.md)
 - [ ] API documentation
 
 ### Milestone 6.3: Release Preparation
@@ -149,6 +154,16 @@
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 5)
+- Implemented direct OpenAI provider with full tool calling support
+- Implemented Local provider for Ollama/vLLM/LM Studio (OpenAI-compatible endpoints)
+- Created MCP track with two exercises:
+  - `mcp/server_01` - MCP tool definition
+  - `mcp/client_01` - MCP JSON-RPC tool call request
+- Added comprehensive exercise authoring guide (docs/AUTHORING.md)
+- Total: 106 tests passing (54 unit + 11 CLI + 41 grading)
+- All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 4)
 - Created AGENTS.md following AAIF standard for agent guidance
@@ -219,15 +234,16 @@ Core dependencies:
 
 ## Next Steps
 
-1. ~~Add integration tests~~ ✅ Done (37 tests)
+1. ~~Add integration tests~~ ✅ Done (106 tests)
 2. ~~Complete README.md with usage docs~~ ✅ Done
 3. ~~Add AGENTS.md for agent guidance~~ ✅ Done
 4. ~~Set up CI/CD pipeline with GitHub Actions~~ ✅ Done
 5. ~~Implement Anthropic provider~~ ✅ Done
-6. Add more exercises to MCP track
-7. Implement direct OpenAI provider
-8. Add exercise authoring documentation
-9. Prepare first release (binary builds)
+6. ~~Implement direct OpenAI provider~~ ✅ Done
+7. ~~Add MCP track with exercises~~ ✅ Done (2 exercises)
+8. ~~Implement local provider for Ollama/vLLM~~ ✅ Done
+9. ~~Add exercise authoring documentation~~ ✅ Done (docs/AUTHORING.md)
+10. Prepare first release (binary builds)
 
 ---
 

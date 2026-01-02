@@ -523,6 +523,389 @@ fn test_tools_01_extra_argument_not_allowed() {
 }
 
 // =============================================================================
+// MCP_SERVER_01 Tests - MCP Tool Definition
+// =============================================================================
+
+#[test]
+fn test_mcp_server_01_valid_tool_definition() {
+    let exercise = load_exercise("mcp", "server_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "name": "calculate_area",
+        "description": "Calculate the area of a geometric shape",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "shape": {
+                    "type": "string",
+                    "enum": ["circle", "rectangle", "triangle"],
+                    "description": "The type of shape"
+                },
+                "radius": {
+                    "type": "number",
+                    "description": "Radius for circle"
+                },
+                "width": {
+                    "type": "number",
+                    "description": "Width for rectangle"
+                },
+                "height": {
+                    "type": "number",
+                    "description": "Height for rectangle or triangle"
+                },
+                "base": {
+                    "type": "number",
+                    "description": "Base for triangle"
+                }
+            },
+            "required": ["shape"]
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid MCP tool definition to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_mcp_server_01_wrong_tool_name() {
+    let exercise = load_exercise("mcp", "server_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "name": "compute_area",
+        "description": "Calculate the area of a geometric shape",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "shape": {
+                    "type": "string",
+                    "enum": ["circle", "rectangle", "triangle"]
+                },
+                "radius": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" },
+                "base": { "type": "number" }
+            },
+            "required": ["shape"]
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong tool name to fail");
+}
+
+#[test]
+fn test_mcp_server_01_missing_input_schema() {
+    let exercise = load_exercise("mcp", "server_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "name": "calculate_area",
+        "description": "Calculate the area of a geometric shape"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing inputSchema to fail");
+}
+
+#[test]
+fn test_mcp_server_01_using_parameters_instead_of_input_schema() {
+    let exercise = load_exercise("mcp", "server_01");
+    let grader = Grader::new().unwrap();
+
+    // Using OpenAI-style "parameters" instead of MCP-style "inputSchema"
+    let invalid_output = r#"{
+        "name": "calculate_area",
+        "description": "Calculate the area of a geometric shape",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "shape": {
+                    "type": "string",
+                    "enum": ["circle", "rectangle", "triangle"]
+                },
+                "radius": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" },
+                "base": { "type": "number" }
+            },
+            "required": ["shape"]
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected using 'parameters' instead of 'inputSchema' to fail"
+    );
+}
+
+#[test]
+fn test_mcp_server_01_missing_required_property() {
+    let exercise = load_exercise("mcp", "server_01");
+    let grader = Grader::new().unwrap();
+
+    // Missing the 'base' property
+    let invalid_output = r#"{
+        "name": "calculate_area",
+        "description": "Calculate the area of a geometric shape",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "shape": {
+                    "type": "string",
+                    "enum": ["circle", "rectangle", "triangle"]
+                },
+                "radius": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" }
+            },
+            "required": ["shape"]
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing base property to fail");
+}
+
+#[test]
+fn test_mcp_server_01_wrong_shape_enum() {
+    let exercise = load_exercise("mcp", "server_01");
+    let grader = Grader::new().unwrap();
+
+    // Using wrong enum values for shape
+    let invalid_output = r#"{
+        "name": "calculate_area",
+        "description": "Calculate the area of a geometric shape",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "shape": {
+                    "type": "string",
+                    "enum": ["square", "pentagon", "hexagon"]
+                },
+                "radius": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" },
+                "base": { "type": "number" }
+            },
+            "required": ["shape"]
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong shape enum values to fail");
+}
+
+#[test]
+fn test_mcp_server_01_mcp_track() {
+    let exercise = load_exercise("mcp", "server_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Mcp,
+        "Exercise should be in MCP track"
+    );
+}
+
+// =============================================================================
+// MCP_CLIENT_01 Tests - MCP JSON-RPC Tool Call Request
+// =============================================================================
+
+#[test]
+fn test_mcp_client_01_valid_request() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "jsonrpc": "2.0",
+        "id": "calc-001",
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": 5
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid MCP request to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_mcp_client_01_numeric_id() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "jsonrpc": "2.0",
+        "id": 42,
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": 10
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected numeric id to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_mcp_client_01_wrong_jsonrpc_version() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "jsonrpc": "1.0",
+        "id": "test",
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": 5
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong jsonrpc version to fail");
+}
+
+#[test]
+fn test_mcp_client_01_wrong_method() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "jsonrpc": "2.0",
+        "id": "test",
+        "method": "call_tool",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": 5
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong method to fail");
+}
+
+#[test]
+fn test_mcp_client_01_missing_id() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": 5
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing id to fail");
+}
+
+#[test]
+fn test_mcp_client_01_wrong_shape() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "jsonrpc": "2.0",
+        "id": "test",
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "square",
+                "radius": 5
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected wrong shape to fail (must be circle)"
+    );
+}
+
+#[test]
+fn test_mcp_client_01_string_radius() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "jsonrpc": "2.0",
+        "id": "test",
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": "five"
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected string radius to fail (must be number)"
+    );
+}
+
+#[test]
+fn test_mcp_client_01_negative_radius() {
+    let exercise = load_exercise("mcp", "client_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "jsonrpc": "2.0",
+        "id": "test",
+        "method": "tools/call",
+        "params": {
+            "name": "calculate_area",
+            "arguments": {
+                "shape": "circle",
+                "radius": -5
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected negative radius to fail");
+}
+
+// =============================================================================
 // Grader Type Tests
 // =============================================================================
 

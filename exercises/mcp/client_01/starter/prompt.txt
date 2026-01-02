@@ -1,0 +1,11 @@
+Create an MCP JSON-RPC 2.0 request to call the "calculate_area" tool.
+
+You need to calculate the area of a circle with radius 5.
+
+Requirements:
+1. Use JSON-RPC 2.0 format with jsonrpc, id, method, and params
+2. The method must be "tools/call"
+3. Include the tool name and arguments in params
+4. Arguments must specify shape="circle" and radius=5
+
+Output only the JSON request, no explanation.
