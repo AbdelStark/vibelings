@@ -9,9 +9,12 @@ use crate::{Error, Result};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_API_VERSION: &str = "2023-06-01";
+/// Default timeout for HTTP requests (2 minutes).
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// Anthropic (Claude) provider.
 pub struct AnthropicProvider {
@@ -130,6 +133,8 @@ impl AnthropicProvider {
 
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| Error::Provider(ProviderError::HttpError(e.to_string())))?;
 
@@ -152,6 +157,8 @@ impl AnthropicProvider {
     pub fn new(api_key: String, model: String) -> Result<Self> {
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| Error::Provider(ProviderError::HttpError(e.to_string())))?;
 

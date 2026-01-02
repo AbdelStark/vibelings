@@ -304,15 +304,22 @@ impl ExerciseRunner {
     /// For multi-run exercises, use `run_exercise_multi` instead which calls this
     /// method multiple times and aggregates results.
     ///
-    /// When `update_progress` is true, updates the progress file. Set to false
-    /// when called from `run_exercise_multi` which handles its own progress tracking.
-    async fn run_exercise_single(&self, exercise: &Exercise, _verbose: bool) -> Result<RunResult> {
+    /// When `verbose` is true, additional logging is output during execution.
+    async fn run_exercise_single(&self, exercise: &Exercise, verbose: bool) -> Result<RunResult> {
         let exercise_id = exercise.full_id();
         let start = Instant::now();
+
+        if verbose {
+            tracing::info!("Running exercise: {}", exercise_id);
+        }
 
         // Load configuration and create provider
         let config = load_or_create_config()?;
         let provider = create_provider(&config)?;
+
+        if verbose {
+            tracing::info!("Using provider: {}", provider.name());
+        }
 
         // Read the exercise prompt from README
         let readme_content = if exercise.readme_path.exists() {

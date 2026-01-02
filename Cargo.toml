@@ -25,7 +25,7 @@ toml = "0.8"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
 # Error handling
-thiserror = "2"
+thiserror = "1"
 anyhow = "1"
 
 # JSON Schema validation
@@ -73,6 +73,39 @@ tokio-test = "0.4"
 strip = true
 lto = true
 codegen-units = 1
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+# Allow common pedantic patterns (pedantic is too strict for this project)
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+too_many_lines = "allow"
+doc_markdown = "allow"
+similar_names = "allow"
+uninlined_format_args = "allow"
+cast_possible_truncation = "allow"
+unnested_or_patterns = "allow"
+unnecessary_wraps = "allow"
+single_match_else = "allow"
+match_same_arms = "allow"
+redundant_closure_for_method_calls = "allow"
+map_unwrap_or = "allow"
+items_after_statements = "allow"
+match_wildcard_for_single_variants = "allow"
+trivially_copy_pass_by_ref = "allow"
+needless_raw_string_hashes = "allow"
+struct_excessive_bools = "allow"
+unused_self = "allow"
+if_not_else = "allow"
+return_self_not_must_use = "allow"
+option_if_let_else = "allow"
+manual_let_else = "allow"
 
 [[bin]]
 name = "vibelings"

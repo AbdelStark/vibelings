@@ -44,14 +44,23 @@ pub struct GradingDetail {
 }
 
 /// The grading engine.
+///
+/// Supports multiple grading strategies including JSON Schema validation,
+/// invariant script checking, and sandbox tool call validation.
+#[derive(Default)]
 pub struct Grader {
     // Configuration could go here
 }
 
 impl Grader {
     /// Create a new grader.
+    ///
+    /// # Errors
+    ///
+    /// Currently always succeeds. The `Result` return type is for future
+    /// extensibility when grader initialization may require validation.
     pub fn new() -> Result<Self> {
-        Ok(Self {})
+        Ok(Self::default())
     }
 
     /// Grade an exercise based on the model output.
