@@ -15,6 +15,18 @@ pub struct UserConfig {
     #[serde(default)]
     pub openrouter: OpenRouterConfig,
 
+    /// OpenAI-specific configuration
+    #[serde(default)]
+    pub openai: OpenAIConfig,
+
+    /// Anthropic-specific configuration
+    #[serde(default)]
+    pub anthropic: AnthropicConfig,
+
+    /// Local provider configuration
+    #[serde(default)]
+    pub local: LocalConfig,
+
     /// Sandbox configuration
     #[serde(default)]
     pub sandbox: SandboxConfig,
@@ -129,6 +141,76 @@ impl Default for OpenRouterConfig {
             data_collection: default_data_collection(),
             allow_fallbacks: true,
             provider_order: vec!["anthropic".to_string(), "openai".to_string()],
+        }
+    }
+}
+
+/// OpenAI-specific configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIConfig {
+    /// Environment variable containing the API key
+    #[serde(default = "default_openai_api_key_env")]
+    pub api_key_env: String,
+
+    /// Optional organization ID environment variable
+    #[serde(default)]
+    pub org_id_env: Option<String>,
+}
+
+fn default_openai_api_key_env() -> String {
+    "OPENAI_API_KEY".to_string()
+}
+
+impl Default for OpenAIConfig {
+    fn default() -> Self {
+        Self {
+            api_key_env: default_openai_api_key_env(),
+            org_id_env: None,
+        }
+    }
+}
+
+/// Anthropic-specific configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnthropicConfig {
+    /// Environment variable containing the API key
+    #[serde(default = "default_anthropic_api_key_env")]
+    pub api_key_env: String,
+}
+
+fn default_anthropic_api_key_env() -> String {
+    "ANTHROPIC_API_KEY".to_string()
+}
+
+impl Default for AnthropicConfig {
+    fn default() -> Self {
+        Self {
+            api_key_env: default_anthropic_api_key_env(),
+        }
+    }
+}
+
+/// Local provider configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalConfig {
+    /// Base URL for local OpenAI-compatible API
+    #[serde(default = "default_local_base_url")]
+    pub base_url: String,
+
+    /// Optional API key for authenticated local endpoints
+    #[serde(default)]
+    pub api_key: Option<String>,
+}
+
+fn default_local_base_url() -> String {
+    "http://localhost:11434/v1".to_string()
+}
+
+impl Default for LocalConfig {
+    fn default() -> Self {
+        Self {
+            base_url: default_local_base_url(),
+            api_key: None,
         }
     }
 }

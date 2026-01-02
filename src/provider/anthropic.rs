@@ -126,9 +126,11 @@ pub struct AnthropicErrorDetail {
 impl AnthropicProvider {
     /// Create a new Anthropic provider from configuration.
     pub fn from_config(config: &UserConfig) -> Result<Self> {
-        // Look for ANTHROPIC_API_KEY environment variable
-        let api_key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| {
-            Error::Config(ConfigError::EnvVarNotSet("ANTHROPIC_API_KEY".to_string()))
+        // Look for API key using the configured environment variable name
+        let api_key = std::env::var(&config.anthropic.api_key_env).map_err(|_| {
+            Error::Config(ConfigError::EnvVarNotSet(
+                config.anthropic.api_key_env.clone(),
+            ))
         })?;
 
         let client = Client::builder()

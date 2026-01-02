@@ -49,12 +49,19 @@ struct LocalErrorDetail {
 impl LocalProvider {
     /// Create a new local provider from configuration.
     pub fn from_config(config: &UserConfig) -> Result<Self> {
-        // Get base URL from LOCAL_API_URL env var, or use default
-        let base_url =
-            std::env::var("LOCAL_API_URL").unwrap_or_else(|_| DEFAULT_LOCAL_URL.to_string());
+        // Get base URL from config, falling back to env var, then default
+        let base_url = if !config.local.base_url.is_empty() {
+            config.local.base_url.clone()
+        } else {
+            std::env::var("LOCAL_API_URL").unwrap_or_else(|_| DEFAULT_LOCAL_URL.to_string())
+        };
 
-        // API key is optional for local providers
-        let api_key = std::env::var("LOCAL_API_KEY").ok();
+        // API key from config, or from env var if not set
+        let api_key = config
+            .local
+            .api_key
+            .clone()
+            .or_else(|| std::env::var("LOCAL_API_KEY").ok());
 
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))

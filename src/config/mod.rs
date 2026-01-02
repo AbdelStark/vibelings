@@ -10,6 +10,6 @@ pub use loader::{
     default_config_content, load_config, load_or_create_config, load_progress, save_progress,
 };
 pub use types::{
-    DisplayConfig, ExerciseProgress, ModelConfig, OpenRouterConfig, ProviderType, SandboxConfig,
-    UserConfig, UserProgress,
+    AnthropicConfig, DisplayConfig, ExerciseProgress, LocalConfig, ModelConfig, OpenAIConfig,
+    OpenRouterConfig, ProviderType, SandboxConfig, UserConfig, UserProgress,
 };
