@@ -187,14 +187,208 @@ impl Grader {
         })
     }
 
-    /// Grade based on sandbox state.
-    fn grade_sandbox(&self, _exercise: &Exercise, _output: &str) -> Result<GradingResult> {
-        // TODO: Implement sandbox grading
+    /// Grade based on sandbox state (tool call validation).
+    ///
+    /// Sandbox grading validates that the model output contains valid tool calls
+    /// that conform to expected schemas and constraints.
+    ///
+    /// Expected output format:
+    /// ```json
+    /// {
+    ///   "tool_calls": [
+    ///     {"name": "tool_name", "arguments": {...}}
+    ///   ],
+    ///   "result": "optional final result"
+    /// }
+    /// ```
+    fn grade_sandbox(&self, exercise: &Exercise, output: &str) -> Result<GradingResult> {
+        // Parse output as JSON
+        let output_json: serde_json::Value = match serde_json::from_str(output) {
+            Ok(v) => v,
+            Err(e) => {
+                return Ok(GradingResult {
+                    passed: false,
+                    message: format!("Output is not valid JSON: {}", e),
+                    details: vec![],
+                    schema_errors: vec![e.to_string()],
+                });
+            }
+        };
+
+        // Extract tool_calls array
+        let tool_calls = match output_json.get("tool_calls") {
+            Some(serde_json::Value::Array(calls)) => calls,
+            Some(_) => {
+                return Ok(GradingResult {
+                    passed: false,
+                    message: "tool_calls must be an array".to_string(),
+                    details: vec![],
+                    schema_errors: vec!["tool_calls is not an array".to_string()],
+                });
+            }
+            None => {
+                return Ok(GradingResult {
+                    passed: false,
+                    message: "Output must contain a tool_calls array".to_string(),
+                    details: vec![],
+                    schema_errors: vec!["Missing tool_calls field".to_string()],
+                });
+            }
+        };
+
+        let mut details = Vec::new();
+        let mut all_passed = true;
+        let mut schema_errors = Vec::new();
+
+        // Load tools schema if specified
+        let tools_schema = if let Some(ref schema_path) = exercise.manifest.grader.schema_path {
+            let full_path = exercise.grader_path.join(schema_path);
+            if full_path.exists() {
+                let content = std::fs::read_to_string(&full_path)?;
+                Some(serde_json::from_str::<serde_json::Value>(&content)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // Validate each tool call
+        for (i, call) in tool_calls.iter().enumerate() {
+            let call_name = format!("tool_call_{}", i);
+
+            // Check required fields
+            let tool_name = match call.get("name") {
+                Some(serde_json::Value::String(n)) => n.clone(),
+                _ => {
+                    all_passed = false;
+                    details.push(GradingDetail {
+                        name: call_name,
+                        passed: false,
+                        message: "Tool call missing 'name' field".to_string(),
+                    });
+                    continue;
+                }
+            };
+
+            let arguments = match call.get("arguments") {
+                Some(args) => args,
+                None => {
+                    all_passed = false;
+                    details.push(GradingDetail {
+                        name: call_name,
+                        passed: false,
+                        message: format!("Tool call '{}' missing 'arguments' field", tool_name),
+                    });
+                    continue;
+                }
+            };
+
+            // Validate against tools schema if available
+            if let Some(ref tools) = tools_schema {
+                if let Some(tools_array) = tools.get("tools").and_then(|t| t.as_array()) {
+                    let tool_def = tools_array.iter().find(|t| {
+                        t.get("name").and_then(|n| n.as_str()) == Some(&tool_name)
+                    });
+
+                    match tool_def {
+                        Some(def) => {
+                            if let Some(params_schema) = def.get("parameters") {
+                                match schema::validate_json(arguments, params_schema) {
+                                    Ok(()) => {
+                                        details.push(GradingDetail {
+                                            name: call_name,
+                                            passed: true,
+                                            message: format!(
+                                                "Tool '{}' arguments valid",
+                                                tool_name
+                                            ),
+                                        });
+                                    }
+                                    Err(errors) => {
+                                        all_passed = false;
+                                        schema_errors.extend(errors.clone());
+                                        details.push(GradingDetail {
+                                            name: call_name,
+                                            passed: false,
+                                            message: format!(
+                                                "Tool '{}' arguments invalid: {}",
+                                                tool_name,
+                                                errors.join("; ")
+                                            ),
+                                        });
+                                    }
+                                }
+                            } else {
+                                details.push(GradingDetail {
+                                    name: call_name,
+                                    passed: true,
+                                    message: format!("Tool '{}' called (no schema)", tool_name),
+                                });
+                            }
+                        }
+                        None => {
+                            all_passed = false;
+                            schema_errors.push(format!("Unknown tool: {}", tool_name));
+                            details.push(GradingDetail {
+                                name: call_name,
+                                passed: false,
+                                message: format!("Unknown tool '{}'", tool_name),
+                            });
+                        }
+                    }
+                } else {
+                    details.push(GradingDetail {
+                        name: call_name,
+                        passed: true,
+                        message: format!("Tool '{}' called", tool_name),
+                    });
+                }
+            } else {
+                details.push(GradingDetail {
+                    name: call_name,
+                    passed: true,
+                    message: format!("Tool '{}' called", tool_name),
+                });
+            }
+        }
+
+        // Run invariant scripts if defined
+        if !exercise.manifest.grader.invariants.is_empty() {
+            let tool_calls_json = serde_json::to_string_pretty(tool_calls)?;
+
+            for invariant_path in &exercise.manifest.grader.invariants {
+                let full_path = exercise.grader_path.join(invariant_path);
+                if !full_path.exists() {
+                    return Err(Error::Grading(GradingError::InvariantScriptNotFound(
+                        full_path,
+                    )));
+                }
+
+                let result = invariant::run_invariant(&full_path, &tool_calls_json)?;
+                if !result.passed {
+                    all_passed = false;
+                }
+                details.push(GradingDetail {
+                    name: invariant_path.clone(),
+                    passed: result.passed,
+                    message: result.message,
+                });
+            }
+        }
+
+        let passed_count = details.iter().filter(|d| d.passed).count();
+        let total = details.len();
+
         Ok(GradingResult {
-            passed: true,
-            message: "Sandbox grading not yet implemented".to_string(),
-            details: vec![],
-            schema_errors: vec![],
+            passed: all_passed,
+            message: if all_passed {
+                format!("Sandbox validation passed: {}/{} checks", passed_count, total)
+            } else {
+                format!("Sandbox validation failed: {}/{} checks passed", passed_count, total)
+            },
+            details,
+            schema_errors,
         })
     }
 

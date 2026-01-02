@@ -234,6 +234,12 @@ impl ExerciseRunner {
         let duration_secs = start.elapsed().as_secs_f64();
         let usage = response.usage();
 
+        // Count tool calls from response
+        let tool_call_count = response
+            .tool_calls()
+            .map(|tc| tc.len() as u32)
+            .unwrap_or(0);
+
         // Grade the result
         let output = response.text().unwrap_or("");
         let grading_result = self.grader.grade(&exercise, output)?;
@@ -291,7 +297,7 @@ impl ExerciseRunner {
             },
             duration_secs,
             cost_usd,
-            tool_calls: 0, // TODO: Track tool calls
+            tool_calls: tool_call_count,
             tokens_in: usage.prompt_tokens,
             tokens_out: usage.completion_tokens,
             grading_details: Some(grading_result.message),

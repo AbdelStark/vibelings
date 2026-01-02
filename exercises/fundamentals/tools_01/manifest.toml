@@ -1,0 +1,21 @@
+[exercise]
+id = "tools_01"
+title = "Basic Tool Calling"
+track = "fundamentals"
+prerequisites = ["json_01"]
+description = "Learn to define and call tools with properly validated arguments"
+difficulty = 2
+
+[requirements]
+tool_calling = true
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 5
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "sandbox"
+schema_path = "tools_schema.json"

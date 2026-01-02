@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Weather assistant tool definitions",
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get current weather for a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "City name, optionally with state/country"
+          },
+          "units": {
+            "type": "string",
+            "enum": ["celsius", "fahrenheit"],
+            "description": "Temperature units"
+          }
+        },
+        "required": ["location"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_forecast",
+      "description": "Get multi-day weather forecast",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "City name"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7,
+            "description": "Number of forecast days"
+          },
+          "units": {
+            "type": "string",
+            "enum": ["celsius", "fahrenheit"],
+            "description": "Temperature units"
+          }
+        },
+        "required": ["location", "days"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

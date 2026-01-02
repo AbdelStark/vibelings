@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Code review assistant tool definitions",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read contents of a file",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Path to the file"
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "search_code",
+      "description": "Search for patterns in the codebase",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Search pattern (regex supported)"
+          },
+          "file_type": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Filter by file extension"
+          }
+        },
+        "required": ["pattern"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Write contents to a file",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Path to the file"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "description": "New file contents"
+          }
+        },
+        "required": ["path", "content"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "run_tests",
+      "description": "Run the test suite",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Run tests for specific file/directory"
+          },
+          "verbose": {
+            "type": "boolean",
+            "description": "Show detailed output"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

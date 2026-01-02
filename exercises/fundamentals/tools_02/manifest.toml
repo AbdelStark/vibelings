@@ -1,0 +1,22 @@
+[exercise]
+id = "tools_02"
+title = "Multi-Tool Orchestration"
+track = "fundamentals"
+prerequisites = ["tools_01"]
+description = "Learn to orchestrate multiple tool calls in the correct sequence"
+difficulty = 3
+
+[requirements]
+tool_calling = true
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 10
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "sandbox"
+schema_path = "tools_schema.json"
+invariants = ["check_sequence.sh"]
