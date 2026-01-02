@@ -15,6 +15,18 @@ pub struct UserConfig {
     #[serde(default)]
     pub openrouter: OpenRouterConfig,
 
+    /// OpenAI-specific configuration
+    #[serde(default)]
+    pub openai: OpenAIConfig,
+
+    /// Anthropic-specific configuration
+    #[serde(default)]
+    pub anthropic: AnthropicConfig,
+
+    /// Local provider configuration
+    #[serde(default)]
+    pub local: LocalConfig,
+
     /// Sandbox configuration
     #[serde(default)]
     pub sandbox: SandboxConfig,
@@ -129,6 +141,76 @@ impl Default for OpenRouterConfig {
             data_collection: default_data_collection(),
             allow_fallbacks: true,
             provider_order: vec!["anthropic".to_string(), "openai".to_string()],
+        }
+    }
+}
+
+/// OpenAI-specific configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIConfig {
+    /// Environment variable containing the API key
+    #[serde(default = "default_openai_api_key_env")]
+    pub api_key_env: String,
+
+    /// Optional organization ID environment variable
+    #[serde(default)]
+    pub org_id_env: Option<String>,
+}
+
+fn default_openai_api_key_env() -> String {
+    "OPENAI_API_KEY".to_string()
+}
+
+impl Default for OpenAIConfig {
+    fn default() -> Self {
+        Self {
+            api_key_env: default_openai_api_key_env(),
+            org_id_env: None,
+        }
+    }
+}
+
+/// Anthropic-specific configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnthropicConfig {
+    /// Environment variable containing the API key
+    #[serde(default = "default_anthropic_api_key_env")]
+    pub api_key_env: String,
+}
+
+fn default_anthropic_api_key_env() -> String {
+    "ANTHROPIC_API_KEY".to_string()
+}
+
+impl Default for AnthropicConfig {
+    fn default() -> Self {
+        Self {
+            api_key_env: default_anthropic_api_key_env(),
+        }
+    }
+}
+
+/// Local provider configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalConfig {
+    /// Base URL for local OpenAI-compatible API
+    #[serde(default = "default_local_base_url")]
+    pub base_url: String,
+
+    /// Optional API key for authenticated local endpoints
+    #[serde(default)]
+    pub api_key: Option<String>,
+}
+
+fn default_local_base_url() -> String {
+    "http://localhost:11434/v1".to_string()
+}
+
+impl Default for LocalConfig {
+    fn default() -> Self {
+        Self {
+            base_url: default_local_base_url(),
+            api_key: None,
         }
     }
 }
@@ -366,5 +448,71 @@ timeout_seconds = 60
         let ex_progress = progress.exercises.get("json_01").unwrap();
         assert_eq!(ex_progress.successful_runs, 2);
         assert_eq!(ex_progress.total_runs, 2);
+    }
+
+    #[test]
+    fn test_openai_config_defaults() {
+        let config = OpenAIConfig::default();
+        assert_eq!(config.api_key_env, "OPENAI_API_KEY");
+        assert!(config.org_id_env.is_none());
+    }
+
+    #[test]
+    fn test_anthropic_config_defaults() {
+        let config = AnthropicConfig::default();
+        assert_eq!(config.api_key_env, "ANTHROPIC_API_KEY");
+    }
+
+    #[test]
+    fn test_local_config_defaults() {
+        let config = LocalConfig::default();
+        assert_eq!(config.base_url, "http://localhost:11434/v1");
+        assert!(config.api_key.is_none());
+    }
+
+    #[test]
+    fn test_full_config_with_all_providers() {
+        let toml_str = r#"
+[model]
+provider = "anthropic"
+model = "claude-sonnet-4-20250514"
+temperature = 0.1
+
+[openrouter]
+api_key_env = "MY_OR_KEY"
+zdr = true
+
+[openai]
+api_key_env = "MY_OPENAI_KEY"
+org_id_env = "MY_ORG"
+
+[anthropic]
+api_key_env = "MY_ANTHROPIC_KEY"
+
+[local]
+base_url = "http://localhost:8000/v1"
+api_key = "local-key"
+
+[sandbox]
+network = true
+timeout_seconds = 120
+"#;
+        let config: UserConfig = toml::from_str(toml_str).unwrap();
+
+        // Check model config
+        assert_eq!(config.model.provider, ProviderType::Anthropic);
+        assert_eq!(config.model.temperature, 0.1);
+
+        // Check provider configs
+        assert_eq!(config.openrouter.api_key_env, "MY_OR_KEY");
+        assert_eq!(config.openai.api_key_env, "MY_OPENAI_KEY");
+        assert_eq!(config.openai.org_id_env, Some("MY_ORG".to_string()));
+        assert_eq!(config.anthropic.api_key_env, "MY_ANTHROPIC_KEY");
+        assert_eq!(config.local.base_url, "http://localhost:8000/v1");
+        assert_eq!(config.local.api_key, Some("local-key".to_string()));
+
+        // Check sandbox
+        assert!(config.sandbox.network);
+        assert_eq!(config.sandbox.timeout_seconds, 120);
     }
 }

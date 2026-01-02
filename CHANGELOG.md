@@ -13,11 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Example configuration**: Added `config.example.toml` with full documentation of all options
 - **Security policy**: Added `SECURITY.md` with responsible disclosure process
 - **Provider documentation**: Added provider options table in README
+- **Provider config sections**: Added `[openai]`, `[anthropic]`, and `[local]` config sections to match `config.example.toml`
+- **Retry logic**: Added `RetryingProvider` wrapper with exponential backoff and jitter for rate limiting (429) and transient errors
+- **`create_provider_with_retry`**: New factory function that creates providers with automatic retry logic
+- **New exercise**: Added `fundamentals/json_03` - Array Contracts (teaches array validation and item-level constraints)
 
 ### Changed
 
-- **Test coverage**: Added 8 new CLI integration tests (131 tests total)
+- **Test coverage**: Added 29 new tests (152 tests total: 70 unit + 19 CLI + 63 grading)
+- **Exercise count**: Now 16 exercises across 4 tracks (8 fundamentals + 2 MCP + 3 workflows + 3 production)
 - **README**: Improved configuration documentation with provider options
+- **Provider config**: OpenAI, Anthropic, and Local providers now read API key env var names from their config sections
+- **Exercise runner**: Now uses retry-enabled provider for automatic rate limiting handling
 
 ## [0.1.0] - 2026-01-02
 

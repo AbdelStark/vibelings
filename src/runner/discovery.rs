@@ -4,7 +4,7 @@ use crate::config::{load_or_create_config, load_progress, save_progress, Exercis
 use crate::error::ExerciseError;
 use crate::exercise::{Exercise, ExerciseManifest, ExerciseStatus};
 use crate::grader::Grader;
-use crate::provider::create_provider;
+use crate::provider::create_provider_with_retry;
 use crate::trace::TraceStore;
 use crate::{Error, Result};
 use std::path::{Path, PathBuf};
@@ -313,9 +313,9 @@ impl ExerciseRunner {
             tracing::info!("Running exercise: {}", exercise_id);
         }
 
-        // Load configuration and create provider
+        // Load configuration and create provider with retry logic
         let config = load_or_create_config()?;
-        let provider = create_provider(&config)?;
+        let provider = create_provider_with_retry(&config)?;
 
         if verbose {
             tracing::info!("Using provider: {}", provider.name());

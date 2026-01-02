@@ -107,7 +107,7 @@
 - [x] Implement OpenRouter provider
 - [x] Add BYOK support
 - [x] Implement ZDR and privacy controls
-- [ ] Add fallback handling (partial)
+- [x] Add retry wrapper with exponential backoff
 
 ### Milestone 4.3: Direct Providers ✅
 - [x] OpenAI provider
@@ -173,6 +173,29 @@
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 8)
+- Added provider config sections to UserConfig:
+  - `[openai]` with `api_key_env` and `org_id_env`
+  - `[anthropic]` with `api_key_env`
+  - `[local]` with `base_url` and `api_key`
+- Updated providers to use config sections for env var names
+- Added retry wrapper (`RetryingProvider`) with exponential backoff and jitter:
+  - Handles rate limiting (429) and server errors (5xx)
+  - Retries transient connection errors
+  - Configurable retry count, delays, and backoff multiplier
+  - Full jitter prevents thundering herd issues
+- Added `create_provider_with_retry()` factory function
+- Updated ExerciseRunner to use retry-enabled provider
+- Added unit tests for new config types
+- Added `rand` dependency for jitter generation
+- Added new exercise: `fundamentals/json_03` (Array Contracts)
+  - Teaches array validation with item constraints
+  - minItems/maxItems constraints, nested object arrays
+  - Includes 6 grading tests
+- Total: 152 tests passing (70 unit + 19 CLI + 63 grading)
+- Exercise count: 16 exercises across 4 tracks
+- All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 7)
 - Completed Phase 7.3: Release Preparation

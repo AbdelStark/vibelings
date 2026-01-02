@@ -40,12 +40,17 @@ struct OpenAIErrorDetail {
 impl OpenAIProvider {
     /// Create a new OpenAI provider from configuration.
     pub fn from_config(config: &UserConfig) -> Result<Self> {
-        // Look for OPENAI_API_KEY environment variable
-        let api_key = std::env::var("OPENAI_API_KEY")
-            .map_err(|_| Error::Config(ConfigError::EnvVarNotSet("OPENAI_API_KEY".to_string())))?;
+        // Look for API key using the configured environment variable name
+        let api_key = std::env::var(&config.openai.api_key_env).map_err(|_| {
+            Error::Config(ConfigError::EnvVarNotSet(config.openai.api_key_env.clone()))
+        })?;
 
-        // Optional organization ID
-        let organization = std::env::var("OPENAI_ORG_ID").ok();
+        // Optional organization ID from configured env var
+        let organization = config
+            .openai
+            .org_id_env
+            .as_ref()
+            .and_then(|env_name| std::env::var(env_name).ok());
 
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
