@@ -2,7 +2,7 @@
 
 > Tracking progress for building "Rustlings for agentic programming"
 
-## Current Status: Phase 2 - CLI Implementation (Mostly Complete)
+## Current Status: Phase 6 - Polish & Testing (In Progress)
 
 **Last Updated:** 2026-01-02
 
@@ -129,7 +129,8 @@
 ## Phase 6: Polish & Testing 🚧
 
 ### Milestone 6.1: Testing 🚧
-- [x] Unit tests for all modules (25 passing)
+- [x] Unit tests for all modules (36 passing)
+- [x] Grader error handling tests
 - [ ] Integration tests
 - [ ] Exercise grading tests
 - [ ] CI/CD setup
@@ -148,6 +149,13 @@
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 3)
+- Fixed incorrect stub behavior in graders (Reliability and LlmJudge now return proper errors)
+- Implemented multi-run reliability in ExerciseRunner
+- Added tests for grader error handling
+- All 36 unit tests passing
+- Clarified that multi-run is a runner concern, not a grader type
 
 ### 2026-01-02 (Session 2)
 - Completed Phase 1: Foundation
@@ -169,6 +177,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-02 | Multi-run at runner level, not grader | Graders should be single-run deterministic; runner handles K-run orchestration |
 | 2026-01-02 | Use tokio for async | Standard async runtime, good ecosystem |
 | 2026-01-02 | Use clap derive | Cleaner CLI code, type-safe |
 | 2026-01-02 | OpenRouter as default provider | Multi-provider, BYOK, privacy controls |
