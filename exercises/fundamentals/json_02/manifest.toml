@@ -1,0 +1,21 @@
+[exercise]
+id = "json_02"
+title = "Nested JSON Structures"
+track = "fundamentals"
+prerequisites = ["json_01"]
+description = "Handle complex nested JSON with arrays and objects"
+difficulty = 2
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

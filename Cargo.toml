@@ -1,0 +1,79 @@
+[package]
+name = "vibelings"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vibelings Contributors"]
+description = "Rustlings for agentic programming - learn to build reliable agentic AI systems"
+license = "MIT"
+repository = "https://github.com/AbdelStark/vibelings"
+keywords = ["ai", "agents", "education", "mcp", "llm"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# CLI framework
+clap = { version = "4", features = ["derive", "env"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# HTTP client
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# JSON Schema validation
+jsonschema = "0.29"
+
+# File watching for watch mode
+notify = "7"
+notify-debouncer-mini = "0.5"
+
+# Terminal UI
+console = "0.15"
+indicatif = "0.17"
+dialoguer = "0.11"
+
+# Directory and path utilities
+directories = "5"
+walkdir = "2"
+
+# Async utilities
+futures = "0.3"
+async-trait = "0.1"
+
+# Tracing and logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# UUID for trace IDs
+uuid = { version = "1", features = ["v4"] }
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Regex for pattern matching
+regex = "1"
+
+[dev-dependencies]
+# Testing utilities
+tempfile = "3"
+assert_cmd = "2"
+predicates = "3"
+mockall = "0.13"
+tokio-test = "0.4"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
+[[bin]]
+name = "vibelings"
+path = "src/main.rs"

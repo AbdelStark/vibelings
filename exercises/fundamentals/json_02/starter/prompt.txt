@@ -1,0 +1,10 @@
+Generate a JSON object representing the "Data Platform Team" in the "Analytics" department.
+
+The team has 3 members:
+1. Jordan Lee (lead) - skills: data architecture, spark, python
+2. Sam Rivera (senior) - skills: etl, airflow, sql
+3. Casey Park (junior) - skills: python, pandas, visualization
+
+They are currently working on "Real-time Analytics Pipeline" with a deadline of 2025-03-15, status is "active".
+
+Output only the JSON object, no additional text.
