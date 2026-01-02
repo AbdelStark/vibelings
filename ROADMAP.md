@@ -15,7 +15,7 @@
 | Phase 1 | Foundation - Core infrastructure | ✅ Complete |
 | Phase 2 | CLI Implementation | ✅ Complete |
 | Phase 3 | First Exercise Track | ✅ Complete (7 exercises) |
-| Phase 4 | Provider Integration | ✅ Complete (OpenRouter) |
+| Phase 4 | Provider Integration | ✅ Complete (OpenRouter + Anthropic) |
 | Phase 5 | Sandbox & Security | ✅ Complete |
 | Phase 6 | Polish & Testing | 🚧 In Progress |
 
@@ -105,7 +105,7 @@
 
 ### Milestone 4.3: Direct Providers
 - [ ] OpenAI provider (TODO)
-- [ ] Anthropic provider (TODO)
+- [x] Anthropic provider
 - [ ] Local endpoint support (Ollama, vLLM) (TODO)
 
 ---
@@ -129,15 +129,15 @@
 ## Phase 6: Polish & Testing 🚧
 
 ### Milestone 6.1: Testing 🚧
-- [x] Unit tests for all modules (36 passing)
+- [x] Unit tests for all modules (41 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (11 passing)
-- [ ] Exercise grading tests
-- [ ] CI/CD setup
+- [x] Exercise grading tests (26 passing)
+- [x] CI/CD setup (GitHub Actions)
 
 ### Milestone 6.2: Documentation
 - [x] README.md with usage instructions
-- [ ] AGENTS.md for agent guidance
+- [x] AGENTS.md for agent guidance
 - [ ] Exercise authoring guide
 - [ ] API documentation
 
@@ -149,6 +149,15 @@
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 4)
+- Created AGENTS.md following AAIF standard for agent guidance
+- Added GitHub Actions CI/CD workflow (.github/workflows/ci.yml)
+- Added 26 exercise grading integration tests
+- Implemented native Anthropic provider with tool calling support
+- Fixed code formatting and clippy warnings
+- Total: 78 tests passing (41 unit + 11 CLI + 26 grading)
+- All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 3)
 - Fixed incorrect stub behavior in graders (Reliability and LlmJudge now return proper errors)
@@ -210,12 +219,15 @@ Core dependencies:
 
 ## Next Steps
 
-1. ~~Add integration tests~~ ✅ Done (11 tests)
+1. ~~Add integration tests~~ ✅ Done (37 tests)
 2. ~~Complete README.md with usage docs~~ ✅ Done
-3. Add AGENTS.md for agent guidance
-4. Set up CI/CD pipeline with GitHub Actions
-5. Add more exercises to MCP track
-6. Implement direct OpenAI/Anthropic providers
+3. ~~Add AGENTS.md for agent guidance~~ ✅ Done
+4. ~~Set up CI/CD pipeline with GitHub Actions~~ ✅ Done
+5. ~~Implement Anthropic provider~~ ✅ Done
+6. Add more exercises to MCP track
+7. Implement direct OpenAI provider
+8. Add exercise authoring documentation
+9. Prepare first release (binary builds)
 
 ---
 

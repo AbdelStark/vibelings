@@ -150,8 +150,7 @@ pub async fn run(full: bool) -> Result<()> {
         println!();
         println!(
             "{}",
-            style("Tip: Run 'vibelings doctor --full' to test API connectivity")
-                .dim()
+            style("Tip: Run 'vibelings doctor --full' to test API connectivity").dim()
         );
     }
 

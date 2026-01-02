@@ -3,14 +3,17 @@
 //! All model interactions go through a unified provider trait, with an OpenAI-compatible
 //! schema internally. Supported backends:
 //! - **OpenRouter** (default): Unified API with BYOK support, privacy controls, ZDR
-//! - **Direct providers**: OpenAI, Anthropic, etc. via their native APIs
+//! - **Anthropic**: Direct Anthropic (Claude) API
+//! - **Direct providers**: OpenAI via their native APIs
 //! - **Local endpoints**: Any OpenAI-compatible server (Ollama, vLLM, etc.)
 
+mod anthropic;
 mod openrouter;
 mod request;
 mod response;
 mod traits;
 
+pub use anthropic::AnthropicProvider;
 pub use openrouter::OpenRouterProvider;
 pub use request::{
     CompletionRequest, FunctionCall, Message, MessageContent, MessageRole, Tool, ToolChoice,
@@ -31,16 +34,17 @@ pub fn create_provider(config: &UserConfig) -> Result<Arc<dyn ModelProvider>> {
         }
         ProviderType::OpenAI => {
             // TODO: Implement OpenAI provider
+            // For now, fall back to OpenRouter
             let provider = OpenRouterProvider::from_config(config)?;
             Ok(Arc::new(provider))
         }
         ProviderType::Anthropic => {
-            // TODO: Implement Anthropic provider
-            let provider = OpenRouterProvider::from_config(config)?;
+            let provider = AnthropicProvider::from_config(config)?;
             Ok(Arc::new(provider))
         }
         ProviderType::Local => {
             // TODO: Implement local provider
+            // For now, fall back to OpenRouter
             let provider = OpenRouterProvider::from_config(config)?;
             Ok(Arc::new(provider))
         }

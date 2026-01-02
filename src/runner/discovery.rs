@@ -171,7 +171,9 @@ impl ExerciseRunner {
 
         // For multi-run exercises, run multiple times and aggregate
         if num_runs > 1 {
-            return self.run_exercise_multi(exercise_id, &exercise, num_runs, verbose).await;
+            return self
+                .run_exercise_multi(exercise_id, &exercise, num_runs, verbose)
+                .await;
         }
 
         self.run_exercise_single(&exercise, verbose).await
@@ -377,10 +379,7 @@ impl ExerciseRunner {
         let usage = response.usage();
 
         // Count tool calls from response
-        let tool_call_count = response
-            .tool_calls()
-            .map(|tc| tc.len() as u32)
-            .unwrap_or(0);
+        let tool_call_count = response.tool_calls().map(|tc| tc.len() as u32).unwrap_or(0);
 
         // Grade the result
         let output = response.text().unwrap_or("");

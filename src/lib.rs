@@ -33,7 +33,10 @@ mod error;
 mod exercise;
 
 pub use error::{Error, Result};
-pub use exercise::{Exercise, ExerciseManifest, ExerciseStatus, Track};
+pub use exercise::{
+    Exercise, ExerciseManifest, ExerciseMetadata, ExerciseRequirements, ExerciseRunConfig,
+    ExerciseStatus, GraderConfig, GraderType, Track,
+};
 
 /// Application version from Cargo.toml
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
