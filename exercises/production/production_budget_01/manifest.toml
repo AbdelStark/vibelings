@@ -4,7 +4,7 @@ title = "Cost and Latency Budgets"
 track = "production"
 prerequisites = ["production_security_01"]
 description = "Learn to define and enforce cost and latency budgets for agent operations"
-difficulty = 3
+difficulty = 5
 
 [requirements]
 tool_calling = false

@@ -15,6 +15,8 @@ pub enum Track {
     Workflows,
     /// Track 4: Reliability at scale
     Production,
+    /// Track 5: Context Engineering - managing finite context effectively
+    Context,
 }
 
 impl Track {
@@ -25,6 +27,7 @@ impl Track {
             Track::Mcp => "MCP in Practice",
             Track::Workflows => "Workflow Orchestration",
             Track::Production => "Production Engineering",
+            Track::Context => "Context Engineering",
         }
     }
 
@@ -35,6 +38,7 @@ impl Track {
             Track::Mcp => "mcp",
             Track::Workflows => "workflows",
             Track::Production => "production",
+            Track::Context => "context",
         }
     }
 
@@ -45,6 +49,7 @@ impl Track {
             "mcp" => Some(Track::Mcp),
             "workflows" => Some(Track::Workflows),
             "production" => Some(Track::Production),
+            "context" => Some(Track::Context),
             _ => None,
         }
     }

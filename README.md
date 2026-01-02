@@ -141,6 +141,18 @@ Reliability at scale:
 | `production_security_01` | Prompt Injection Defense | Security patterns |
 | `production_budget_01` | Cost/Latency Budgets | Operational guardrails |
 
+### Track 5: Context Engineering
+
+Managing the finite resource of context effectively:
+
+| Exercise | Topic | What You Learn |
+|----------|-------|----------------|
+| `context_01` | System Prompt Structure | Organize prompts with clear sections |
+| `context_02` | Context Budget Management | Allocate tokens strategically |
+| `context_03` | Just-in-Time Retrieval | Load context on-demand |
+| `context_04` | Conversation Compaction | Preserve critical information while reducing tokens |
+| `context_05` | Token-Efficient Tools | Design tools that minimize context overhead |
+
 ## Commands
 
 | Command | Description |
@@ -225,7 +237,7 @@ Progress is saved in `~/.config/vibelings/progress.toml`.
 # Build
 cargo build
 
-# Run tests (188 tests)
+# Run tests
 cargo test
 
 # Run with debug output

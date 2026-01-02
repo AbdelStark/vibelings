@@ -1859,3 +1859,951 @@ fn test_mcp_resource_01_mcp_track() {
         "Exercise should be in MCP track"
     );
 }
+
+// =============================================================================
+// CONTEXT_01 Tests - System Prompt Structure
+// =============================================================================
+
+#[test]
+fn test_context_01_valid_prompt_structure() {
+    let exercise = load_exercise("context", "context_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "role": "You are a helpful customer support assistant for TechCorp, specializing in helping users troubleshoot technical issues.",
+        "capabilities": [
+            "Answer questions about product features",
+            "Help troubleshoot common technical issues",
+            "Guide users through account management"
+        ],
+        "constraints": [
+            "Do not provide legal or financial advice",
+            "Do not access or modify user accounts directly"
+        ],
+        "response_format": {
+            "style": "conversational",
+            "max_length": 500,
+            "include_sources": false
+        },
+        "examples": [
+            {
+                "user": "How do I reset my password?",
+                "assistant": "To reset your password, go to Settings > Account > Change Password. You'll receive a confirmation email."
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid prompt structure to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_context_01_missing_capabilities() {
+    let exercise = load_exercise("context", "context_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "role": "You are a helpful customer support assistant for TechCorp.",
+        "capabilities": ["Help users"],
+        "constraints": [
+            "Do not provide legal advice",
+            "Do not access accounts"
+        ],
+        "response_format": {
+            "style": "concise",
+            "max_length": 300,
+            "include_sources": false
+        },
+        "examples": [
+            {"user": "Hello", "assistant": "Hi there! How can I help?"}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected too few capabilities (< 3) to fail"
+    );
+}
+
+#[test]
+fn test_context_01_invalid_style_enum() {
+    let exercise = load_exercise("context", "context_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "role": "You are a helpful customer support assistant for TechCorp.",
+        "capabilities": ["Help A", "Help B", "Help C"],
+        "constraints": ["Constraint A", "Constraint B"],
+        "response_format": {
+            "style": "casual",
+            "max_length": 300,
+            "include_sources": false
+        },
+        "examples": [
+            {"user": "Hello", "assistant": "Hi there! How can I help?"}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid style enum to fail");
+}
+
+#[test]
+fn test_context_01_missing_examples() {
+    let exercise = load_exercise("context", "context_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "role": "You are a helpful customer support assistant for TechCorp.",
+        "capabilities": ["Help A", "Help B", "Help C"],
+        "constraints": ["Constraint A", "Constraint B"],
+        "response_format": {
+            "style": "concise",
+            "max_length": 300,
+            "include_sources": false
+        },
+        "examples": []
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected empty examples array to fail");
+}
+
+#[test]
+fn test_context_01_context_track() {
+    let exercise = load_exercise("context", "context_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Context,
+        "Exercise should be in context track"
+    );
+}
+
+// =============================================================================
+// CONTEXT_02 Tests - Context Budget Management
+// =============================================================================
+
+#[test]
+fn test_context_02_valid_budget_allocation() {
+    let exercise = load_exercise("context", "context_02");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "allocations": [
+            {
+                "context_type": "system_prompt",
+                "tokens": 1500,
+                "priority": 1,
+                "compression_strategy": "keep_verbatim",
+                "justification": "System prompt defines agent behavior and must be preserved completely."
+            },
+            {
+                "context_type": "code_context",
+                "tokens": 2500,
+                "priority": 2,
+                "compression_strategy": "sample_representative",
+                "justification": "Code context is essential for understanding the task at hand."
+            },
+            {
+                "context_type": "documentation",
+                "tokens": 1500,
+                "priority": 3,
+                "compression_strategy": "summarize",
+                "justification": "Documentation provides reference material that can be summarized."
+            },
+            {
+                "context_type": "conversation_history",
+                "tokens": 1500,
+                "priority": 4,
+                "compression_strategy": "truncate_oldest",
+                "justification": "Recent conversation is more relevant than older turns."
+            },
+            {
+                "context_type": "tool_definitions",
+                "tokens": 1000,
+                "priority": 5,
+                "compression_strategy": "eliminate",
+                "justification": "Tool definitions can be loaded on-demand when needed."
+            }
+        ],
+        "total_tokens": 8000
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid budget allocation to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_context_02_wrong_total_tokens() {
+    let exercise = load_exercise("context", "context_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "allocations": [
+            {"context_type": "system_prompt", "tokens": 1000, "priority": 1, "compression_strategy": "keep_verbatim", "justification": "Preserved for behavior definition."},
+            {"context_type": "code_context", "tokens": 2000, "priority": 2, "compression_strategy": "summarize", "justification": "Code context for task understanding."},
+            {"context_type": "documentation", "tokens": 1000, "priority": 3, "compression_strategy": "summarize", "justification": "Reference material."},
+            {"context_type": "conversation_history", "tokens": 1000, "priority": 4, "compression_strategy": "truncate_oldest", "justification": "Recent history."},
+            {"context_type": "tool_definitions", "tokens": 1000, "priority": 5, "compression_strategy": "eliminate", "justification": "On-demand loading."}
+        ],
+        "total_tokens": 6000
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected wrong total_tokens (not 8000) to fail"
+    );
+}
+
+#[test]
+fn test_context_02_too_few_allocations() {
+    let exercise = load_exercise("context", "context_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "allocations": [
+            {"context_type": "system_prompt", "tokens": 4000, "priority": 1, "compression_strategy": "keep_verbatim", "justification": "Preserved for behavior definition."},
+            {"context_type": "code_context", "tokens": 4000, "priority": 2, "compression_strategy": "summarize", "justification": "Code context for task understanding."}
+        ],
+        "total_tokens": 8000
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected too few allocations (< 5) to fail");
+}
+
+#[test]
+fn test_context_02_invalid_context_type() {
+    let exercise = load_exercise("context", "context_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "allocations": [
+            {"context_type": "system_prompt", "tokens": 1600, "priority": 1, "compression_strategy": "keep_verbatim", "justification": "Preserved for behavior definition."},
+            {"context_type": "custom_data", "tokens": 1600, "priority": 2, "compression_strategy": "summarize", "justification": "Custom data source."},
+            {"context_type": "documentation", "tokens": 1600, "priority": 3, "compression_strategy": "summarize", "justification": "Reference material."},
+            {"context_type": "conversation_history", "tokens": 1600, "priority": 4, "compression_strategy": "truncate_oldest", "justification": "Recent history."},
+            {"context_type": "tool_definitions", "tokens": 1600, "priority": 5, "compression_strategy": "eliminate", "justification": "On-demand loading."}
+        ],
+        "total_tokens": 8000
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid context_type enum to fail");
+}
+
+// =============================================================================
+// CONTEXT_03 Tests - Just-in-Time Context Retrieval
+// =============================================================================
+
+#[test]
+fn test_context_03_valid_jit_strategy() {
+    let exercise = load_exercise("context", "context_03");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "initial_context": [
+            {"name": "system_prompt", "description": "Core instructions and behavioral guidelines", "token_estimate": 500},
+            {"name": "user_profile", "description": "Current user preferences and history summary", "token_estimate": 200}
+        ],
+        "triggers": [
+            {"name": "code_query", "pattern": "code|function|class|method", "sources": ["codebase"], "max_tokens": 2000, "cache": true},
+            {"name": "doc_query", "pattern": "how to|documentation|guide", "sources": ["docs"], "max_tokens": 1500, "cache": true},
+            {"name": "error_query", "pattern": "error|exception|failed|bug", "sources": ["logs", "codebase"], "max_tokens": 1000, "cache": false}
+        ],
+        "sources": [
+            {"name": "codebase", "type": "knowledge_base", "description": "Project source code repository", "avg_tokens": 1500},
+            {"name": "docs", "type": "documentation", "description": "Technical documentation and guides", "avg_tokens": 1000},
+            {"name": "logs", "type": "database", "description": "Application logs and error reports", "avg_tokens": 500}
+        ],
+        "loading_order": ["codebase", "docs", "logs"]
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid JIT strategy to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_context_03_too_few_triggers() {
+    let exercise = load_exercise("context", "context_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "initial_context": [
+            {"name": "system_prompt", "description": "Core instructions and behavioral guidelines", "token_estimate": 500},
+            {"name": "user_profile", "description": "Current user preferences and history", "token_estimate": 200}
+        ],
+        "triggers": [
+            {"name": "code_query", "pattern": "code", "sources": ["codebase"], "max_tokens": 2000, "cache": true}
+        ],
+        "sources": [
+            {"name": "codebase", "type": "knowledge_base", "description": "Project source code repository", "avg_tokens": 1500},
+            {"name": "docs", "type": "documentation", "description": "Technical documentation", "avg_tokens": 1000},
+            {"name": "logs", "type": "database", "description": "Application logs", "avg_tokens": 500}
+        ],
+        "loading_order": ["codebase", "docs", "logs"]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected too few triggers (< 3) to fail");
+}
+
+#[test]
+fn test_context_03_too_few_sources() {
+    let exercise = load_exercise("context", "context_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "initial_context": [
+            {"name": "system_prompt", "description": "Core instructions and guidelines", "token_estimate": 500},
+            {"name": "user_profile", "description": "Current user preferences and history", "token_estimate": 200}
+        ],
+        "triggers": [
+            {"name": "trigger1", "pattern": "code", "sources": ["codebase"], "max_tokens": 2000, "cache": true},
+            {"name": "trigger2", "pattern": "docs", "sources": ["codebase"], "max_tokens": 1500, "cache": true},
+            {"name": "trigger3", "pattern": "logs", "sources": ["codebase"], "max_tokens": 1000, "cache": false}
+        ],
+        "sources": [
+            {"name": "codebase", "type": "knowledge_base", "description": "Project source code repository", "avg_tokens": 1500}
+        ],
+        "loading_order": ["codebase"]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected too few sources (< 3) to fail");
+}
+
+#[test]
+fn test_context_03_invalid_source_type() {
+    let exercise = load_exercise("context", "context_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "initial_context": [
+            {"name": "system_prompt", "description": "Core instructions and guidelines", "token_estimate": 500},
+            {"name": "user_profile", "description": "Current user preferences and history", "token_estimate": 200}
+        ],
+        "triggers": [
+            {"name": "trigger1", "pattern": "code", "sources": ["src1"], "max_tokens": 2000, "cache": true},
+            {"name": "trigger2", "pattern": "docs", "sources": ["src2"], "max_tokens": 1500, "cache": true},
+            {"name": "trigger3", "pattern": "logs", "sources": ["src3"], "max_tokens": 1000, "cache": false}
+        ],
+        "sources": [
+            {"name": "src1", "type": "file_system", "description": "Local file system", "avg_tokens": 1500},
+            {"name": "src2", "type": "documentation", "description": "Technical docs", "avg_tokens": 1000},
+            {"name": "src3", "type": "database", "description": "Application logs", "avg_tokens": 500}
+        ],
+        "loading_order": ["src1", "src2", "src3"]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid source type enum to fail");
+}
+
+// =============================================================================
+// CONTEXT_04 Tests - Conversation Compaction
+// =============================================================================
+
+#[test]
+fn test_context_04_valid_compacted_conversation() {
+    let exercise = load_exercise("context", "context_04");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "decisions": [
+            {"statement": "Decided to use PostgreSQL for the database", "importance": "Foundation for all data storage decisions", "turn": 3},
+            {"statement": "Agreed to implement REST API first, then GraphQL", "importance": "Defines the API development roadmap", "turn": 7}
+        ],
+        "facts": [
+            {"statement": "The project deadline is March 15th, 2025", "relevance": "Critical for planning and prioritization", "turn": 1},
+            {"statement": "Budget is capped at $50,000 for infrastructure", "relevance": "Constrains technology choices", "turn": 2}
+        ],
+        "current_state": "We have completed the database schema design and are now beginning the API implementation phase. The next step is to set up the REST endpoints.",
+        "open_items": [
+            "Finalize authentication strategy",
+            "Choose deployment platform (AWS vs GCP)",
+            "Schedule security review"
+        ],
+        "metadata": {
+            "original_tokens": 5000,
+            "compacted_tokens": 800
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid compacted conversation to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_context_04_too_few_decisions() {
+    let exercise = load_exercise("context", "context_04");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "decisions": [
+            {"statement": "Decided to use PostgreSQL for the database", "importance": "Foundation for all data storage decisions", "turn": 3}
+        ],
+        "facts": [
+            {"statement": "The project deadline is March 15th, 2025", "relevance": "Critical for planning", "turn": 1},
+            {"statement": "Budget is capped at $50,000", "relevance": "Constrains choices", "turn": 2}
+        ],
+        "current_state": "We have completed the database schema design and are beginning implementation.",
+        "open_items": ["Finalize auth strategy"],
+        "metadata": {"original_tokens": 5000, "compacted_tokens": 600}
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected too few decisions (< 2) to fail");
+}
+
+#[test]
+fn test_context_04_too_few_facts() {
+    let exercise = load_exercise("context", "context_04");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "decisions": [
+            {"statement": "Decided to use PostgreSQL", "importance": "Foundation for storage", "turn": 3},
+            {"statement": "Agreed to implement REST API first", "importance": "Defines roadmap", "turn": 7}
+        ],
+        "facts": [
+            {"statement": "The project deadline is March 15th", "relevance": "Critical for planning", "turn": 1}
+        ],
+        "current_state": "We have completed the database schema design and are beginning implementation.",
+        "open_items": ["Finalize auth strategy"],
+        "metadata": {"original_tokens": 5000, "compacted_tokens": 600}
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected too few facts (< 2) to fail");
+}
+
+#[test]
+fn test_context_04_empty_open_items() {
+    let exercise = load_exercise("context", "context_04");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "decisions": [
+            {"statement": "Decided to use PostgreSQL", "importance": "Foundation for storage", "turn": 3},
+            {"statement": "Agreed to implement REST API first", "importance": "Defines roadmap", "turn": 7}
+        ],
+        "facts": [
+            {"statement": "The project deadline is March 15th", "relevance": "Critical for planning", "turn": 1},
+            {"statement": "Budget is capped at $50,000", "relevance": "Constrains choices", "turn": 2}
+        ],
+        "current_state": "We have completed the database schema design and are beginning implementation.",
+        "open_items": [],
+        "metadata": {"original_tokens": 5000, "compacted_tokens": 600}
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected empty open_items to fail");
+}
+
+#[test]
+fn test_context_04_current_state_too_short() {
+    let exercise = load_exercise("context", "context_04");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "decisions": [
+            {"statement": "Decided to use PostgreSQL", "importance": "Foundation for storage", "turn": 3},
+            {"statement": "Agreed to implement REST API", "importance": "Defines roadmap", "turn": 7}
+        ],
+        "facts": [
+            {"statement": "Deadline is March 15th", "relevance": "Critical for planning", "turn": 1},
+            {"statement": "Budget is $50,000", "relevance": "Constrains choices", "turn": 2}
+        ],
+        "current_state": "Working on API.",
+        "open_items": ["Finalize auth"],
+        "metadata": {"original_tokens": 5000, "compacted_tokens": 600}
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected current_state too short (< 20 chars) to fail"
+    );
+}
+
+// =============================================================================
+// CONTEXT_05 Tests - Token-Efficient Tool Design
+// =============================================================================
+
+#[test]
+fn test_context_05_valid_tool_set() {
+    let exercise = load_exercise("context", "context_05");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "tools": [
+            {
+                "name": "search_files",
+                "description": "Search for files in the codebase matching a pattern or query",
+                "parameters": [
+                    {"name": "query", "type": "string", "required": true, "description": "The search query or pattern to match"}
+                ],
+                "output_schema": {"files": "array", "count": "number"},
+                "token_estimate": 80
+            },
+            {
+                "name": "read_file",
+                "description": "Read the contents of a file at the specified path",
+                "parameters": [
+                    {"name": "path", "type": "string", "required": true, "description": "The path to the file to read"}
+                ],
+                "output_schema": {"content": "string", "lines": "number"},
+                "token_estimate": 70
+            },
+            {
+                "name": "write_file",
+                "description": "Write content to a file, creating it if necessary",
+                "parameters": [
+                    {"name": "path", "type": "string", "required": true, "description": "The destination file path"},
+                    {"name": "content", "type": "string", "required": true, "description": "The content to write"}
+                ],
+                "output_schema": {"success": "boolean"},
+                "token_estimate": 90
+            },
+            {
+                "name": "run_command",
+                "description": "Execute a shell command and return the output",
+                "parameters": [
+                    {"name": "command", "type": "string", "required": true, "description": "The command to execute"}
+                ],
+                "output_schema": {"stdout": "string", "exit_code": "number"},
+                "token_estimate": 85
+            },
+            {
+                "name": "git_status",
+                "description": "Get the current git status of the repository",
+                "parameters": [
+                    {"name": "detailed", "type": "boolean", "required": false, "description": "Include detailed file changes"}
+                ],
+                "output_schema": {"branch": "string", "changes": "array"},
+                "token_estimate": 75
+            }
+        ],
+        "overlap_analysis": [
+            {
+                "tools": ["search_files", "read_file"],
+                "potential_overlap": "Both tools interact with files in the codebase",
+                "mitigation": "search_files finds files, read_file retrieves content - clear separation of concerns"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid tool set to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_context_05_too_few_tools() {
+    let exercise = load_exercise("context", "context_05");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tools": [
+            {
+                "name": "search_files",
+                "description": "Search for files in the codebase matching a pattern",
+                "parameters": [
+                    {"name": "query", "type": "string", "required": true, "description": "Search query"}
+                ],
+                "output_schema": {"files": "array"},
+                "token_estimate": 80
+            },
+            {
+                "name": "read_file",
+                "description": "Read the contents of a file at the path",
+                "parameters": [
+                    {"name": "path", "type": "string", "required": true, "description": "File path"}
+                ],
+                "output_schema": {"content": "string"},
+                "token_estimate": 70
+            }
+        ],
+        "overlap_analysis": [
+            {"tools": ["search_files", "read_file"], "potential_overlap": "Both work with files", "mitigation": "Different purposes"}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected too few tools (< 5) to fail");
+}
+
+#[test]
+fn test_context_05_invalid_tool_name_format() {
+    let exercise = load_exercise("context", "context_05");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tools": [
+            {"name": "SearchFiles", "description": "Search for files matching a pattern", "parameters": [{"name": "q", "type": "string", "required": true, "description": "Query"}], "output_schema": {"f": "array"}, "token_estimate": 80},
+            {"name": "read_file", "description": "Read the contents of a file at path", "parameters": [{"name": "p", "type": "string", "required": true, "description": "Path"}], "output_schema": {"c": "string"}, "token_estimate": 70},
+            {"name": "write_file", "description": "Write content to a file creating if needed", "parameters": [{"name": "p", "type": "string", "required": true, "description": "Path"}], "output_schema": {"ok": "boolean"}, "token_estimate": 90},
+            {"name": "run_cmd", "description": "Execute a shell command and return output", "parameters": [{"name": "c", "type": "string", "required": true, "description": "Command"}], "output_schema": {"out": "string"}, "token_estimate": 85},
+            {"name": "git_stat", "description": "Get the current git status of the repo", "parameters": [{"name": "d", "type": "boolean", "required": false, "description": "Details"}], "output_schema": {"b": "string"}, "token_estimate": 75}
+        ],
+        "overlap_analysis": [
+            {"tools": ["SearchFiles", "read_file"], "potential_overlap": "Both work with files", "mitigation": "Different purposes"}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected invalid tool name format (not snake_case) to fail"
+    );
+}
+
+#[test]
+fn test_context_05_missing_overlap_analysis() {
+    let exercise = load_exercise("context", "context_05");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tools": [
+            {"name": "search_files", "description": "Search for files matching a pattern", "parameters": [{"name": "query", "type": "string", "required": true, "description": "Search query"}], "output_schema": {"files": "array"}, "token_estimate": 80},
+            {"name": "read_file", "description": "Read the contents of a file at path", "parameters": [{"name": "path", "type": "string", "required": true, "description": "File path"}], "output_schema": {"content": "string"}, "token_estimate": 70},
+            {"name": "write_file", "description": "Write content to a file creating if needed", "parameters": [{"name": "path", "type": "string", "required": true, "description": "File path"}], "output_schema": {"success": "boolean"}, "token_estimate": 90},
+            {"name": "run_command", "description": "Execute a shell command and return output", "parameters": [{"name": "command", "type": "string", "required": true, "description": "Shell command"}], "output_schema": {"stdout": "string"}, "token_estimate": 85},
+            {"name": "git_status", "description": "Get the current git status of the repo", "parameters": [{"name": "detailed", "type": "boolean", "required": false, "description": "Include details"}], "output_schema": {"branch": "string"}, "token_estimate": 75}
+        ],
+        "overlap_analysis": []
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected empty overlap_analysis to fail (minItems: 1)"
+    );
+}
+
+#[test]
+fn test_context_05_invalid_parameter_type() {
+    let exercise = load_exercise("context", "context_05");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tools": [
+            {"name": "search_files", "description": "Search for files matching a pattern", "parameters": [{"name": "query", "type": "text", "required": true, "description": "Search query"}], "output_schema": {"files": "array"}, "token_estimate": 80},
+            {"name": "read_file", "description": "Read the contents of a file at path", "parameters": [{"name": "path", "type": "string", "required": true, "description": "File path"}], "output_schema": {"content": "string"}, "token_estimate": 70},
+            {"name": "write_file", "description": "Write content to a file creating if needed", "parameters": [{"name": "path", "type": "string", "required": true, "description": "File path"}], "output_schema": {"success": "boolean"}, "token_estimate": 90},
+            {"name": "run_command", "description": "Execute a shell command and return output", "parameters": [{"name": "command", "type": "string", "required": true, "description": "Shell command"}], "output_schema": {"stdout": "string"}, "token_estimate": 85},
+            {"name": "git_status", "description": "Get the current git status of the repo", "parameters": [{"name": "detailed", "type": "boolean", "required": false, "description": "Include details"}], "output_schema": {"branch": "string"}, "token_estimate": 75}
+        ],
+        "overlap_analysis": [
+            {"tools": ["search_files", "read_file"], "potential_overlap": "Both work with files", "mitigation": "Different purposes"}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected invalid parameter type enum to fail"
+    );
+}
+
+#[test]
+fn test_context_05_context_track() {
+    let exercise = load_exercise("context", "context_05");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Context,
+        "Exercise should be in context track"
+    );
+}
+
+// =============================================================================
+// TOOLS_02 Tests - Multi-Tool Orchestration
+// =============================================================================
+
+#[test]
+fn test_tools_02_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_tools_02_unknown_tool() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "unknown_function", "arguments": {"x": 1}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected unknown tool to fail");
+}
+
+#[test]
+fn test_tools_02_missing_required_path() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "read_file", "arguments": {}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing required path to fail");
+}
+
+#[test]
+fn test_tools_02_write_without_read() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    let grader = Grader::new().unwrap();
+
+    // Invariant requires reading orders.py before writing
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "write_file", "arguments": {"path": "/src/orders.py", "content": "content"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected write without read to fail due to invariant"
+    );
+}
+
+// =============================================================================
+// ERROR_01 Tests - Handling Tool Failures
+// =============================================================================
+
+#[test]
+fn test_error_01_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_error_01_unknown_tool() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "delete_user", "arguments": {"user_id": "123"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected unknown tool to fail");
+}
+
+#[test]
+fn test_error_01_missing_user_id() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "get_user_profile", "arguments": {}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing user_id to fail");
+}
+
+#[test]
+fn test_error_01_missing_error_handling() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    let grader = Grader::new().unwrap();
+
+    // No on_error field - should fail invariant
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "get_user_profile", "arguments": {"user_id": "user123"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected missing error handling to fail invariant"
+    );
+}
+
+// =============================================================================
+// GUARDRAILS_01 Tests - Input/Output Validation
+// =============================================================================
+
+#[test]
+fn test_guardrails_01_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_guardrails_01_invalid_order_id_format() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "lookup_order", "arguments": {"order_id": "ABC-123"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected invalid order_id format (non-numeric) to fail"
+    );
+}
+
+#[test]
+fn test_guardrails_01_invalid_email_format() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "send_email", "arguments": {
+                "to": "not-an-email",
+                "subject": "Test",
+                "body": "Test body"
+            }}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid email format to fail");
+}
+
+#[test]
+fn test_guardrails_01_missing_input_validation() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    let grader = Grader::new().unwrap();
+
+    // No input_validation field - should fail invariant
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "lookup_order", "arguments": {"order_id": "123456"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected missing input_validation to fail invariant"
+    );
+}
+
+// =============================================================================
+// OBSERVABILITY_01 Tests - Tracing and Cost Awareness
+// =============================================================================
+
+#[test]
+fn test_observability_01_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_observability_01_unknown_tool() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "delete_document", "arguments": {"document_id": "doc-001"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected unknown tool to fail");
+}
+
+#[test]
+fn test_observability_01_invalid_format_enum() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "read_document", "arguments": {"document_id": "doc-001", "format": "pdf"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid format enum to fail");
+}
+
+#[test]
+fn test_observability_01_summary_length_out_of_range() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "summarize_text", "arguments": {"text": "Some text", "max_length": 1500}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected max_length > 1000 to fail");
+}
+
+#[test]
+fn test_observability_01_missing_message_body() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "send_message", "arguments": {"to": "user@example.com", "subject": "Test"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing body field to fail");
+}
