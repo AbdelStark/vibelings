@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EventSchedule",
+  "description": "A conference event schedule with multiple sessions",
+  "type": "object",
+  "required": ["event_name", "date", "sessions"],
+  "additionalProperties": false,
+  "properties": {
+    "event_name": {
+      "type": "string",
+      "description": "Name of the event",
+      "minLength": 1
+    },
+    "date": {
+      "type": "string",
+      "description": "Event date in ISO format",
+      "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])$"
+    },
+    "sessions": {
+      "type": "array",
+      "description": "List of sessions at the event",
+      "minItems": 2,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "speaker", "time_slot", "duration_minutes", "track"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique session identifier",
+            "pattern": "^S\\d{3}$"
+          },
+          "title": {
+            "type": "string",
+            "description": "Session title",
+            "minLength": 1
+          },
+          "speaker": {
+            "type": "string",
+            "description": "Speaker name",
+            "minLength": 1
+          },
+          "time_slot": {
+            "type": "string",
+            "description": "Time in 24h format (HH:MM)",
+            "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "description": "Duration in minutes",
+            "minimum": 15,
+            "maximum": 120
+          },
+          "track": {
+            "type": "string",
+            "description": "Session track category",
+            "enum": ["technical", "workshop", "keynote"]
+          }
+        }
+      }
+    }
+  }
+}

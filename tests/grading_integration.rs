@@ -307,6 +307,207 @@ fn test_json_02_invalid_deadline_format() {
 }
 
 // =============================================================================
+// JSON_03 Tests - Array Contracts
+// =============================================================================
+
+#[test]
+fn test_json_03_valid_schedule() {
+    let exercise = load_exercise("fundamentals", "json_03");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "event_name": "AI Engineering Summit 2025",
+        "date": "2025-06-15",
+        "sessions": [
+            {
+                "id": "S001",
+                "title": "Building Reliable Agentic Systems",
+                "speaker": "Dr. Sarah Chen",
+                "time_slot": "09:00",
+                "duration_minutes": 60,
+                "track": "keynote"
+            },
+            {
+                "id": "S002",
+                "title": "MCP Workshop",
+                "speaker": "Alex Rivera",
+                "time_slot": "10:30",
+                "duration_minutes": 90,
+                "track": "workshop"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid schedule to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_json_03_too_few_sessions() {
+    let exercise = load_exercise("fundamentals", "json_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "event_name": "Small Event",
+        "date": "2025-06-15",
+        "sessions": [
+            {
+                "id": "S001",
+                "title": "Only Session",
+                "speaker": "Solo Speaker",
+                "time_slot": "09:00",
+                "duration_minutes": 60,
+                "track": "keynote"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected single session to fail (minItems: 2)"
+    );
+}
+
+#[test]
+fn test_json_03_invalid_session_id_format() {
+    let exercise = load_exercise("fundamentals", "json_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "event_name": "Test Event",
+        "date": "2025-06-15",
+        "sessions": [
+            {
+                "id": "session-1",
+                "title": "Session One",
+                "speaker": "Speaker 1",
+                "time_slot": "09:00",
+                "duration_minutes": 60,
+                "track": "keynote"
+            },
+            {
+                "id": "S002",
+                "title": "Session Two",
+                "speaker": "Speaker 2",
+                "time_slot": "10:00",
+                "duration_minutes": 60,
+                "track": "technical"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected invalid session id format to fail (pattern: SXXX)"
+    );
+}
+
+#[test]
+fn test_json_03_invalid_track_enum() {
+    let exercise = load_exercise("fundamentals", "json_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "event_name": "Test Event",
+        "date": "2025-06-15",
+        "sessions": [
+            {
+                "id": "S001",
+                "title": "Session One",
+                "speaker": "Speaker 1",
+                "time_slot": "09:00",
+                "duration_minutes": 60,
+                "track": "keynote"
+            },
+            {
+                "id": "S002",
+                "title": "Session Two",
+                "speaker": "Speaker 2",
+                "time_slot": "10:00",
+                "duration_minutes": 60,
+                "track": "panel"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid track enum value to fail");
+}
+
+#[test]
+fn test_json_03_duration_out_of_range() {
+    let exercise = load_exercise("fundamentals", "json_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "event_name": "Test Event",
+        "date": "2025-06-15",
+        "sessions": [
+            {
+                "id": "S001",
+                "title": "Session One",
+                "speaker": "Speaker 1",
+                "time_slot": "09:00",
+                "duration_minutes": 180,
+                "track": "workshop"
+            },
+            {
+                "id": "S002",
+                "title": "Session Two",
+                "speaker": "Speaker 2",
+                "time_slot": "10:00",
+                "duration_minutes": 60,
+                "track": "technical"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected duration > 120 to fail (max: 120)");
+}
+
+#[test]
+fn test_json_03_invalid_time_format() {
+    let exercise = load_exercise("fundamentals", "json_03");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "event_name": "Test Event",
+        "date": "2025-06-15",
+        "sessions": [
+            {
+                "id": "S001",
+                "title": "Session One",
+                "speaker": "Speaker 1",
+                "time_slot": "9:00am",
+                "duration_minutes": 60,
+                "track": "keynote"
+            },
+            {
+                "id": "S002",
+                "title": "Session Two",
+                "speaker": "Speaker 2",
+                "time_slot": "10:00",
+                "duration_minutes": 60,
+                "track": "technical"
+            }
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected invalid time format to fail (must be HH:MM)"
+    );
+}
+
+// =============================================================================
 // TOOLS_01 Tests - Sandbox/Tool Calling Validation
 // =============================================================================
 

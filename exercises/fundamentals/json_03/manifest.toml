@@ -1,0 +1,19 @@
+[exercise]
+id = "json_03"
+title = "Array Contracts"
+track = "fundamentals"
+prerequisites = ["json_01", "json_02"]
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

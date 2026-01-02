@@ -189,7 +189,12 @@
 - Updated ExerciseRunner to use retry-enabled provider
 - Added unit tests for new config types
 - Added `rand` dependency for jitter generation
-- Total: 146 tests passing (70 unit + 19 CLI + 57 grading)
+- Added new exercise: `fundamentals/json_03` (Array Contracts)
+  - Teaches array validation with item constraints
+  - minItems/maxItems constraints, nested object arrays
+  - Includes 6 grading tests
+- Total: 152 tests passing (70 unit + 19 CLI + 63 grading)
+- Exercise count: 16 exercises across 4 tracks
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 7)
