@@ -136,12 +136,12 @@
 ## Phase 6: Polish & Testing ✅
 
 ### Milestone 6.1: Testing ✅
-- [x] Unit tests for all modules (98 passing)
+- [x] Unit tests for all modules (114 passing)
 - [x] Grader error handling tests
 - [x] CLI integration tests (19 passing)
 - [x] Exercise grading tests (112 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 229 tests passing
+- [x] Total: 245 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -182,11 +182,11 @@
 
 ## Phase 8: Production Readiness 🔄
 
-### Milestone 8.1: Quality Audit
+### Milestone 8.1: Quality Audit ✅
 - [x] Comprehensive codebase review
 - [x] Documentation consistency check
 - [x] Test coverage analysis
-- [ ] Additional runner/executor tests
+- [x] Additional runner/executor tests (14 new tests added)
 
 ### Milestone 8.2: Final Polish
 - [ ] Tag v0.1.0 release
@@ -207,7 +207,7 @@
   - Added MSRV (Minimum Supported Rust Version) to Cargo.toml
 - Exercise count: 22 exercises across 5 tracks
   - 8 fundamentals + 3 MCP + 3 workflows + 3 production + 5 context
-- Total: 229 tests passing (98 unit + 19 CLI + 112 grading)
+- Total: 245 tests passing (114 unit + 19 CLI + 112 grading)
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 9)
