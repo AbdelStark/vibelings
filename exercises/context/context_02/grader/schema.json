@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContextBudgetAllocation",
+  "description": "A context budget allocation plan for an AI agent",
+  "type": "object",
+  "properties": {
+    "allocations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "context_type": {
+            "type": "string",
+            "enum": ["system_prompt", "code_context", "documentation", "conversation_history", "tool_definitions"],
+            "description": "The type of context being allocated"
+          },
+          "tokens": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 6000,
+            "description": "Number of tokens allocated to this context type"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Priority level (1 = highest)"
+          },
+          "compression_strategy": {
+            "type": "string",
+            "enum": ["truncate_oldest", "truncate_newest", "summarize", "sample_representative", "eliminate", "keep_verbatim"],
+            "description": "Strategy for handling overflow"
+          },
+          "justification": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 300,
+            "description": "Explanation for this allocation"
+          }
+        },
+        "required": ["context_type", "tokens", "priority", "compression_strategy", "justification"],
+        "additionalProperties": false
+      },
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "total_tokens": {
+      "type": "integer",
+      "const": 8000,
+      "description": "Must equal exactly 8000"
+    }
+  },
+  "required": ["allocations", "total_tokens"],
+  "additionalProperties": false
+}

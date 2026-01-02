@@ -1,0 +1,21 @@
+[exercise]
+id = "context_05"
+title = "Tool Design for Token Efficiency"
+track = "context"
+prerequisites = ["context_01"]
+description = "Design token-efficient tools with minimal overlap and clear interfaces"
+difficulty = 2
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

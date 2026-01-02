@@ -1,0 +1,61 @@
+Compact the following conversation into a structured summary. The conversation is between a user and an AI assistant helping to set up a CI/CD pipeline.
+
+---CONVERSATION START---
+Turn 1 - User: I need help setting up CI/CD for my Python web application. It's a FastAPI app with PostgreSQL.
+
+Turn 2 - Assistant: I'd be happy to help you set up CI/CD for your FastAPI application. Let me ask a few questions to understand your needs better:
+1. What's your hosting target? (AWS, GCP, Azure, self-hosted)
+2. Do you have an existing repository structure?
+3. What's your testing setup like?
+4. Do you need staging and production environments?
+
+Turn 3 - User: We're using AWS, specifically ECS Fargate. We have the repo on GitHub. We have pytest for testing but coverage is only about 40%. Yes, we need staging and prod.
+
+Turn 4 - Assistant: Great, here's what I recommend for your setup:
+- GitHub Actions for CI (free for public repos, good integration)
+- AWS ECR for container registry
+- Terraform for infrastructure as code
+- Separate ECS services for staging and prod
+
+For the pipeline stages:
+1. Run pytest and linting on every PR
+2. Build Docker image on merge to main
+3. Auto-deploy to staging
+4. Manual approval for production deployment
+
+Does this approach work for you?
+
+Turn 5 - User: Yes, that sounds good. But we also need database migrations. We use Alembic.
+
+Turn 6 - Assistant: Perfect, we'll integrate Alembic migrations into the pipeline. The safest approach is:
+1. Run migrations as a separate ECS task before deploying the new app version
+2. Use a migration lock to prevent concurrent migrations
+3. Consider blue-green deployments for zero-downtime
+
+Should I start with the GitHub Actions workflow file?
+
+Turn 7 - User: Yes please. Also, we decided we want to require 60% test coverage before merging.
+
+Turn 8 - Assistant: I'll create a GitHub Actions workflow with the 60% coverage requirement. Let me generate that now...
+
+[Assistant generates a 50-line workflow YAML file]
+
+Turn 9 - User: Looks good. One more thing - we need to notify our Slack channel when deployments happen.
+
+Turn 10 - Assistant: I'll add Slack notifications. Which events should trigger notifications?
+- Deployment started
+- Deployment succeeded
+- Deployment failed
+- All of the above?
+
+Turn 11 - User: Just success and failure for now.
+---CONVERSATION END---
+
+Create a compacted summary as a JSON object with these fields:
+- decisions: Array of key decisions (each with statement, importance, turn)
+- facts: Array of established facts (each with statement, relevance, turn)
+- current_state: String describing where the task currently stands
+- open_items: Array of unresolved questions or pending actions
+- metadata: Object with original_tokens (estimate) and compacted_tokens (estimate)
+
+Output only the JSON object, no additional text.

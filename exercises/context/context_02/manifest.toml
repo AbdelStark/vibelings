@@ -1,0 +1,21 @@
+[exercise]
+id = "context_02"
+title = "Context Budget Management"
+track = "context"
+prerequisites = ["context_01"]
+description = "Learn to prioritize and allocate tokens within a context budget"
+difficulty = 2
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

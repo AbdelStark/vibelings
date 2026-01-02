@@ -1,0 +1,10 @@
+Design a system prompt configuration for a customer support assistant at an e-commerce company called "ShopEasy". The assistant helps customers with orders, returns, and product questions.
+
+Create a JSON object with the following structured sections:
+- role: A clear description of the assistant's identity and purpose
+- capabilities: At least 3 things the assistant can help with
+- constraints: At least 2 limitations on what the assistant should not do
+- response_format: How responses should be formatted (style, max_length, include_sources)
+- examples: At least 1 example user/assistant interaction
+
+Output only the JSON object, no additional text.

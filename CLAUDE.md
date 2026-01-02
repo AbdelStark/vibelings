@@ -228,6 +228,16 @@ Reliability at scale:
 - Cost/latency budgets
 - Model/provider drift management
 
+### Track 5: Context Engineering
+Managing the finite resource of context effectively:
+- System prompt structure and organization
+- Context budget allocation and prioritization
+- Just-in-time context retrieval patterns
+- Conversation compaction and summarization
+- Token-efficient tool design
+
+This track teaches the discipline of curating tokens strategically to maximize agent reliability within architectural constraints. Based on principles from [Anthropic's context engineering guide](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents).
+
 ---
 
 ## Progress Tracking
@@ -427,6 +437,9 @@ Community exercises are welcome. Requirements:
 | **Invariant** | A condition that must always be true for grading to pass |
 | **Fixture** | Deterministic mock data for tool responses |
 | **Trace** | Recorded sequence of model requests and tool calls |
+| **Context Engineering** | The discipline of strategically curating tokens to optimize LLM outcomes within context limits |
+| **Context Rot** | Degraded model performance as context length increases |
+| **JIT Context** | Just-in-time loading of context based on task requirements |
 
 ---
 
@@ -436,6 +449,8 @@ Community exercises are welcome. Requirements:
 - [MCP Specification](https://spec.modelcontextprotocol.io/) - Tool protocol standard
 - [AGENTS.md](https://github.com/agentsmd/agents.md) - Repository agent guidance standard
 - [OpenRouter API](https://openrouter.ai/docs) - Multi-provider API
+- [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Anthropic's guide to context engineering
+- [Agent Skills for Context Engineering](https://github.com/muratcankoylan/Agent-Skills-for-Context-Engineering) - Context engineering skill patterns
 
 ---
 
