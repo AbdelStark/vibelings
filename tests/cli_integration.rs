@@ -43,9 +43,7 @@ fn test_init_command() {
         .current_dir(temp_dir.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "Workspace initialized successfully",
-        ));
+        .stdout(predicate::str::contains("Workspace ready"));
 
     // Verify directories were created
     assert!(temp_dir.path().join("exercises").exists());
@@ -75,7 +73,7 @@ fn test_doctor_command() {
         .current_dir(temp_dir.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("Vibelings Doctor"));
+        .stdout(predicate::str::contains("System Health Check"));
 }
 
 #[test]
@@ -214,7 +212,7 @@ fn test_doctor_full_flag() {
         .current_dir(temp_dir.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("Vibelings Doctor"));
+        .stdout(predicate::str::contains("System Health Check"));
 }
 
 #[test]

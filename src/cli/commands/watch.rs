@@ -1,5 +1,6 @@
-//! Watch mode implementation.
+//! Watch mode implementation - the primary interactive experience.
 
+use crate::cli::ui::{self, icons};
 use crate::config::{load_progress, save_progress, UserProgress};
 use crate::runner::ExerciseRunner;
 use crate::Result;
@@ -16,6 +17,7 @@ enum KeyboardEvent {
     Next,
     List,
     Quit,
+    Retry,
     Unknown,
 }
 
@@ -30,11 +32,11 @@ fn spawn_keyboard_listener(tx: Sender<KeyboardEvent>) {
                     Key::Char('n') | Key::Char('N') => KeyboardEvent::Next,
                     Key::Char('l') | Key::Char('L') => KeyboardEvent::List,
                     Key::Char('q') | Key::Char('Q') => KeyboardEvent::Quit,
+                    Key::Char('r') | Key::Char('R') => KeyboardEvent::Retry,
                     Key::Escape => KeyboardEvent::Quit,
                     _ => KeyboardEvent::Unknown,
                 };
 
-                // Send the event; if the receiver is dropped, exit the thread
                 if tx.send(event).is_err() {
                     break;
                 }
@@ -46,11 +48,10 @@ fn spawn_keyboard_listener(tx: Sender<KeyboardEvent>) {
 /// Run the watch command (default mode).
 pub async fn run() -> Result<()> {
     let term = Term::stdout();
-
-    // Clear screen and show welcome
     term.clear_screen()?;
-    println!("{}", style("🎯 Vibelings - Watch Mode").cyan().bold());
-    println!();
+
+    // Show beautiful header
+    ui::print_watch_header();
 
     let runner = ExerciseRunner::new()?;
     let mut progress = load_progress().unwrap_or_default();
@@ -59,24 +60,20 @@ pub async fn run() -> Result<()> {
     let mut current_exercise = find_current_exercise(&runner, &progress)?;
 
     if current_exercise.is_none() {
-        println!(
-            "{}",
-            style("🎉 Congratulations! All exercises completed!")
-                .green()
-                .bold()
-        );
+        ui::celebrate_completion();
         println!();
-        println!(
+        ui::print_info(&format!(
             "Run {} to verify all exercises.",
             style("vibelings verify").cyan()
-        );
+        ));
+        println!();
         return Ok(());
     }
 
     let mut exercise_id = current_exercise.clone().unwrap();
 
     // Display current exercise info
-    display_exercise_info(&runner, &exercise_id)?;
+    display_exercise_info(&runner, &exercise_id, &progress)?;
 
     // Set up file watcher
     let (file_tx, file_rx) = channel();
@@ -97,9 +94,12 @@ pub async fn run() -> Result<()> {
     let mut current_passed = false;
 
     println!();
-    println!("{}", style("Watching for changes...").dim());
-    println!();
-    display_key_hints();
+    println!(
+        "  {} {}",
+        icons::CLOCK,
+        style("Watching for changes...").dim()
+    );
+    print_key_hints_extended();
 
     // Main watch loop
     loop {
@@ -108,34 +108,18 @@ pub async fn run() -> Result<()> {
             Ok(Ok(events)) => {
                 for event in events {
                     if event.kind == DebouncedEventKind::Any {
-                        println!();
-                        println!("{}", style("File changed, re-running exercise...").dim());
-                        println!();
-
-                        // Re-run the current exercise
-                        match runner.run_exercise(&exercise_id, false).await {
-                            Ok(result) => {
-                                current_passed = result.passed;
-                                if result.passed {
-                                    println!("{}", style("✅ PASSED!").green().bold());
-                                    println!();
-                                    println!(
-                                        "Press {} to continue to the next exercise.",
-                                        style("[n]").cyan()
-                                    );
-                                } else {
-                                    println!("{}", style("❌ Not quite right. Keep trying!").red());
-                                }
-                            }
-                            Err(e) => {
-                                println!("{}: {}", style("Error").red(), e);
-                            }
-                        }
+                        // Run the exercise with a spinner
+                        current_passed =
+                            run_exercise_with_feedback(&runner, &exercise_id, &mut progress).await;
                     }
                 }
             }
             Ok(Err(e)) => {
-                eprintln!("Watch error: {:?}", e);
+                eprintln!(
+                    "  {} Watch error: {:?}",
+                    style(icons::CROSS).red(),
+                    e
+                );
             }
             Err(_) => {
                 // Timeout - continue to check keyboard
@@ -147,30 +131,28 @@ pub async fn run() -> Result<()> {
             Ok(KeyboardEvent::Hint) => {
                 handle_hint(&runner, &exercise_id)?;
             }
+            Ok(KeyboardEvent::Retry) => {
+                current_passed =
+                    run_exercise_with_feedback(&runner, &exercise_id, &mut progress).await;
+            }
             Ok(KeyboardEvent::Next) => {
                 if current_passed {
-                    // Mark current as completed and move to next
                     progress.mark_completed(&exercise_id);
                     save_progress(&progress)?;
                 }
 
-                // Find next exercise
                 progress = load_progress().unwrap_or_default();
                 current_exercise = find_current_exercise(&runner, &progress)?;
 
                 if current_exercise.is_none() {
                     term.clear_screen()?;
-                    println!(
-                        "{}",
-                        style("🎉 Congratulations! All exercises completed!")
-                            .green()
-                            .bold()
-                    );
+                    ui::celebrate_completion();
                     println!();
-                    println!(
+                    ui::print_info(&format!(
                         "Run {} to verify all exercises.",
                         style("vibelings verify").cyan()
-                    );
+                    ));
+                    println!();
                     return Ok(());
                 }
 
@@ -179,31 +161,27 @@ pub async fn run() -> Result<()> {
 
                 // Clear screen and show new exercise
                 term.clear_screen()?;
-                println!("{}", style("🎯 Vibelings - Watch Mode").cyan().bold());
+                ui::print_watch_header();
+                display_exercise_info(&runner, &exercise_id, &progress)?;
                 println!();
-                display_exercise_info(&runner, &exercise_id)?;
-                println!();
-                println!("{}", style("Watching for changes...").dim());
-                println!();
-                display_key_hints();
+                println!(
+                    "  {} {}",
+                    icons::CLOCK,
+                    style("Watching for changes...").dim()
+                );
+                print_key_hints_extended();
             }
             Ok(KeyboardEvent::List) => {
                 handle_list(&runner, &progress)?;
             }
             Ok(KeyboardEvent::Quit) => {
-                println!();
-                println!("{}", style("👋 Goodbye!").cyan());
+                ui::print_goodbye();
                 return Ok(());
             }
-            Ok(KeyboardEvent::Unknown) => {
-                // Ignore unknown keys
-            }
-            Err(TryRecvError::Empty) => {
-                // No keyboard input available
-            }
+            Ok(KeyboardEvent::Unknown) => {}
+            Err(TryRecvError::Empty) => {}
             Err(TryRecvError::Disconnected) => {
-                // Keyboard listener thread ended unexpectedly
-                eprintln!("{}", style("Keyboard listener disconnected").red());
+                ui::print_warning("Keyboard listener disconnected");
                 break;
             }
         }
@@ -212,16 +190,80 @@ pub async fn run() -> Result<()> {
     Ok(())
 }
 
+/// Run an exercise with visual feedback
+async fn run_exercise_with_feedback(
+    runner: &ExerciseRunner,
+    exercise_id: &str,
+    _progress: &mut UserProgress,
+) -> bool {
+    println!();
+    let spinner = ui::create_spinner("Running exercise...");
+
+    match runner.run_exercise(exercise_id, false).await {
+        Ok(result) => {
+            spinner.finish_and_clear();
+
+            if result.passed {
+                ui::celebrate_pass();
+                println!();
+                println!(
+                    "     {} {:.1}s  {} ${:.4}",
+                    style("Time:").dim(),
+                    result.duration_secs,
+                    style("Cost:").dim(),
+                    result.cost_usd
+                );
+                println!();
+                println!(
+                    "  {} Press {} to continue to the next exercise",
+                    icons::ARROW_RIGHT,
+                    style("[n]").cyan().bold()
+                );
+            } else {
+                println!();
+                println!(
+                    "  {} {}",
+                    style(icons::CROSS).red(),
+                    style("Not quite right. Keep trying!").red()
+                );
+                if let Some(ref error) = result.error_message {
+                    println!();
+                    println!("     {}", style(error).dim());
+                }
+                println!();
+                println!(
+                    "  {} Press {} for a hint",
+                    icons::LIGHTBULB,
+                    style("[h]").cyan()
+                );
+            }
+
+            print_key_hints_extended();
+            result.passed
+        }
+        Err(e) => {
+            spinner.finish_and_clear();
+            println!();
+            println!(
+                "  {} {}: {}",
+                style(icons::CROSS).red(),
+                style("Error").red().bold(),
+                e
+            );
+            print_key_hints_extended();
+            false
+        }
+    }
+}
+
 fn find_current_exercise(
     runner: &ExerciseRunner,
-    progress: &crate::config::UserProgress,
+    progress: &UserProgress,
 ) -> Result<Option<String>> {
-    // If there's a current exercise in progress, use that
     if let Some(ref current) = progress.current_exercise {
         return Ok(Some(current.clone()));
     }
 
-    // Otherwise, find the first incomplete exercise
     let exercises = runner.discover_exercises()?;
     let completed = progress.completed_exercises();
 
@@ -235,97 +277,113 @@ fn find_current_exercise(
     Ok(None)
 }
 
-fn display_exercise_info(runner: &ExerciseRunner, exercise_id: &str) -> Result<()> {
+fn display_exercise_info(
+    runner: &ExerciseRunner,
+    exercise_id: &str,
+    progress: &UserProgress,
+) -> Result<()> {
     let exercise = runner.get_exercise(exercise_id)?;
+    let exercises = runner.discover_exercises()?;
+    let completed = progress.completed_exercises();
 
-    println!(
-        "{}",
-        style(format!(
-            "━━━ Exercise: {} ━━━",
-            exercise.manifest.exercise.id
-        ))
-        .cyan()
-        .bold()
-    );
+    // Count progress
+    let total = exercises.len();
+    let done = completed.len();
+
+    // Progress indicator
+    ui::print_progress_bar(done, total);
+
     println!();
-    println!(
-        "{}: {}",
-        style("Title").bold(),
-        exercise.manifest.exercise.title
-    );
-    println!(
-        "{}: {}",
-        style("Track").bold(),
-        exercise.manifest.exercise.track.display_name()
+
+    // Beautiful exercise card
+    ui::print_exercise_card(
+        &exercise.manifest.exercise.id,
+        &exercise.manifest.exercise.title,
+        exercise.manifest.exercise.track.display_name(),
+        exercise.manifest.exercise.description.as_deref(),
+        exercise.manifest.exercise.difficulty,
     );
 
-    if let Some(ref desc) = exercise.manifest.exercise.description {
-        println!();
-        println!("{}", desc);
-    }
-
-    // Read and display README excerpt
+    // README excerpt if exists
     if exercise.readme_path.exists() {
-        println!();
-        let readme = std::fs::read_to_string(&exercise.readme_path)?;
-        let excerpt: String = readme.lines().take(10).collect::<Vec<_>>().join("\n");
-        println!("{}", style(excerpt).dim());
-        if readme.lines().count() > 10 {
-            println!("{}", style("...").dim());
+        if let Ok(readme) = std::fs::read_to_string(&exercise.readme_path) {
+            let lines: Vec<&str> = readme.lines().take(8).collect();
+            if !lines.is_empty() {
+                println!();
+                println!("  {}", style("Instructions:").white().bold());
+                for line in &lines {
+                    if !line.trim().is_empty() {
+                        println!("  {}", style(line).dim());
+                    }
+                }
+                if readme.lines().count() > 8 {
+                    println!(
+                        "  {}",
+                        style("  ... (see README.md for full instructions)").dim()
+                    );
+                }
+            }
         }
     }
 
     Ok(())
 }
 
-/// Display keyboard shortcut hints.
-fn display_key_hints() {
+/// Display keyboard shortcut hints with extended options.
+pub fn print_key_hints_extended() {
+    println!();
     println!(
-        "  {} hint  {} next  {} list  {} quit",
+        "  {} {}  {} {}  {} {}  {} {}  {} {}",
         style("[h]").cyan(),
+        style("hint").dim(),
+        style("[r]").cyan(),
+        style("retry").dim(),
         style("[n]").cyan(),
+        style("next").dim(),
         style("[l]").cyan(),
+        style("list").dim(),
         style("[q]").cyan(),
+        style("quit").dim(),
     );
 }
 
-/// Handle the hint command (h key).
 fn handle_hint(runner: &ExerciseRunner, exercise_id: &str) -> Result<()> {
     println!();
-    println!(
-        "{}",
-        style(format!("💡 Hints for: {}", exercise_id))
-            .yellow()
-            .bold()
-    );
+    ui::section_header(&format!("{} Hints", icons::LIGHTBULB));
     println!();
 
     let hints = runner.get_hints(exercise_id)?;
 
     if hints.is_empty() {
-        println!("{}", style("No hints available for this exercise.").dim());
+        println!(
+            "  {}",
+            style("No hints available for this exercise.").dim()
+        );
         println!();
         return Ok(());
     }
 
-    // Show all hints progressively
     for (i, hint) in hints.iter().enumerate() {
+        let star_rating: String = (0..=i)
+            .map(|_| format!("{}", style(icons::STAR).yellow()))
+            .collect();
+
         println!(
-            "{} {}",
+            "  {} {}  {}",
+            star_rating,
             style(format!("Hint {}:", i + 1)).yellow().bold(),
             hint
         );
         println!();
     }
 
-    display_key_hints();
+    print_key_hints_extended();
     Ok(())
 }
 
-/// Handle the list command (l key).
 fn handle_list(runner: &ExerciseRunner, progress: &UserProgress) -> Result<()> {
     println!();
-    println!("{}", style("📚 Exercises").cyan().bold());
+    ui::section_header(&format!("{} Exercise List", icons::BOOK));
     println!();
 
     let exercises = runner.discover_exercises()?;
@@ -337,57 +395,51 @@ fn handle_list(runner: &ExerciseRunner, progress: &UserProgress) -> Result<()> {
 
     for exercise in &exercises {
         let track_name = exercise.manifest.exercise.track.dir_name();
-
-        // Check if prerequisites are met
         let prerequisites_met = exercise.prerequisites_met(&completed);
 
-        // Print track header when it changes
         if track_name != current_track {
             if !current_track.is_empty() {
                 println!();
             }
             println!(
-                "{}",
-                style(format!(
-                    "═══ {} ═══",
-                    exercise.manifest.exercise.track.display_name()
-                ))
-                .bold()
+                "  {}  {}",
+                style(icons::ARROW_RIGHT).cyan(),
+                style(exercise.manifest.exercise.track.display_name())
+                    .white()
+                    .bold()
             );
+            println!();
             current_track = track_name.to_string();
         }
 
         exercise_count += 1;
         let status = progress.get_status(&exercise.full_id());
-        let status_symbol = status.symbol();
 
         if status == crate::ExerciseStatus::Completed {
             completed_count += 1;
         }
 
+        let status_icon = ui::status_symbol(&status);
         let locked = if !prerequisites_met && status != crate::ExerciseStatus::Completed {
-            style(" 🔒").dim()
+            format!(" {}", style(icons::LOCKED).dim())
         } else {
-            style("")
+            String::new()
         };
 
         println!(
-            "  {} {} {}{}",
-            status_symbol,
+            "     {} {} {}{}",
+            status_icon,
             style(&exercise.manifest.exercise.id).white(),
             style(&exercise.manifest.exercise.title).dim(),
             locked
         );
     }
 
+    // Progress summary
+    ui::print_progress_bar(completed_count, exercise_count);
+
     println!();
-    println!(
-        "Progress: {}/{} completed",
-        style(completed_count).green(),
-        style(exercise_count).white()
-    );
-    println!();
-    display_key_hints();
+    print_key_hints_extended();
 
     Ok(())
 }
