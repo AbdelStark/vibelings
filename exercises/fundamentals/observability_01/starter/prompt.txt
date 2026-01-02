@@ -1,0 +1,46 @@
+You are an agent that must track all operations for observability.
+
+For each tool call, include trace, timing, and cost metadata.
+Output ONLY valid JSON - no explanation or other text.
+
+Available tools:
+- read_document: Read a document (~0.001 USD/KB, ~200ms)
+- summarize_text: Summarize using LLM (~0.01 USD/1K tokens, ~2000ms)
+- send_message: Send a message (~0.0001 USD/message, ~100ms)
+
+Task: "Summarize the Q3 report and send it to the team lead."
+
+Requirements:
+1. All tool calls must share the same trace_id (workflow correlation)
+2. Each tool call needs unique span_id
+3. Each call needs timing estimates (estimated_duration_ms, timeout_ms)
+4. Each call needs cost estimates (estimated_usd, cost_factors)
+
+Required output structure:
+{
+  "tool_calls": [
+    {
+      "name": "...",
+      "arguments": {...},
+      "trace": {
+        "trace_id": "workflow-unique-id",
+        "span_id": "operation-unique-id",
+        "parent_span_id": null,
+        "operation": "human readable operation"
+      },
+      "timing": {
+        "estimated_duration_ms": N,
+        "timeout_ms": N
+      },
+      "cost": {
+        "estimated_usd": 0.01,
+        "cost_factors": ["description of what costs"]
+      }
+    }
+  ],
+  "workflow_metadata": {
+    "total_estimated_cost_usd": 0.025,
+    "total_estimated_duration_ms": 2500,
+    "trace_id": "same-workflow-id"
+  }
+}
