@@ -22,6 +22,31 @@ from production-ready agents.
 
 Not all errors are equal. The first step in handling errors is classifying them:
 
+```
+                            ┌─────────────────┐
+                            │   Error Occurs  │
+                            └────────┬────────┘
+                                     │
+                       ┌─────────────┴─────────────┐
+                       ▼                           ▼
+              ┌────────────────┐         ┌────────────────┐
+              │  Is it our     │   No    │  External      │
+              │  fault?        │────────►│  system error  │
+              └───────┬────────┘         └───────┬────────┘
+                      │ Yes                      │
+                      ▼                          ▼
+              ┌────────────────┐    ┌────────────────────────────┐
+              │  Fix code/     │    │  Will retry help?          │
+              │  config        │    └──────────┬─────────────────┘
+              └────────────────┘               │
+                                    ┌──────────┴──────────┐
+                                    ▼                     ▼
+                             ┌───────────┐         ┌───────────┐
+                             │ TRANSIENT │         │ PERMANENT │
+                             │ Retry     │         │ Fail fast │
+                             └───────────┘         └───────────┘
+```
+
 | Error Type | Examples | Strategy |
 |------------|----------|----------|
 | **Transient** | TIMEOUT, SERVICE_UNAVAILABLE, RATE_LIMITED | Retry with backoff |
@@ -35,11 +60,27 @@ Not all errors are equal. The first step in handling errors is classifying them:
 When retrying, don't hammer the service:
 
 ```
-Attempt 1: immediate
-Attempt 2: wait 1 second
-Attempt 3: wait 2 seconds
-Attempt 4: wait 4 seconds
-...
+Time ──────────────────────────────────────────────────────────────►
+
+    ┃ Attempt 1        ┃ Attempt 2        ┃ Attempt 3        ┃ Attempt 4
+    ┃                  ┃                  ┃                  ┃
+    ▼                  ▼                  ▼                  ▼
+────●──────────────────●──────────────────●──────────────────●────────
+    │     wait 1s      │     wait 2s      │     wait 4s      │
+    │◄────────────────►│◄────────────────►│◄────────────────►│
+                           ▲                   ▲
+                     Doubles each time   Exponential growth
+```
+
+**Bad pattern (linear/immediate)**:
+```
+────●──●──●──●──●──●──●──●──●──●────► Hammers the service!
+```
+
+**Good pattern (exponential + jitter)**:
+```
+────●────────●──────────────●────────────────────────●──────────────►
+              + random delay prevents thundering herd
 ```
 
 This gives the service time to recover. Linear or immediate retries often make things worse.
