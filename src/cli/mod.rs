@@ -10,6 +10,7 @@
 //! - `vibelings replay <run_id>` - Replay trace for debugging
 //! - `vibelings doctor` - Verify keys, model access, tool support
 //! - `vibelings cost` - Show token costs per exercise
+//! - `vibelings progress` - Show curriculum progress dashboard
 //! - `vibelings reset <exercise>` - Reset exercise to starter state
 
 mod commands;
@@ -46,6 +47,7 @@ pub async fn run() -> Result<()> {
         Some(Commands::Cost { exercise }) => {
             commands::cost::run(exercise.as_deref(), json_output).await
         }
+        Some(Commands::Progress) => commands::progress::run(json_output).await,
         Some(Commands::Reset { exercise, force }) => commands::reset::run(exercise, *force).await,
         None => {
             // Default: watch mode (JSON not supported for interactive watch)

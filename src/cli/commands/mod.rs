@@ -6,6 +6,7 @@ pub mod hint;
 pub mod init;
 pub mod json_output;
 pub mod list;
+pub mod progress;
 pub mod replay;
 pub mod reset;
 pub mod run;
@@ -105,6 +106,9 @@ pub enum Commands {
         #[arg(short, long)]
         exercise: Option<String>,
     },
+
+    /// Show curriculum progress dashboard
+    Progress,
 
     /// Reset an exercise to its starter state
     Reset {
