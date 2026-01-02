@@ -1,0 +1,16 @@
+Design a just-in-time context retrieval strategy for a technical support agent for a SaaS product called "DataFlow".
+
+Your strategy should specify:
+
+1. initial_context: Array of items always loaded at conversation start (at least 2)
+   - Each item needs: name, description, token_estimate
+
+2. triggers: Array of conditions that trigger context retrieval (at least 3)
+   - Each trigger needs: name, pattern (regex or keywords), sources (array of source names to query), max_tokens, cache (boolean)
+
+3. sources: Array of available context sources (at least 3)
+   - Each source needs: name, type (one of: knowledge_base, api, database, documentation), description, avg_tokens
+
+4. loading_order: Array of source names in priority order for when multiple sources match
+
+Output only the JSON object, no additional text.

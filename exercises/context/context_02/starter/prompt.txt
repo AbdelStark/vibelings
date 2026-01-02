@@ -1,0 +1,16 @@
+Design a context budget allocation for a code review agent with a total budget of 8000 tokens.
+
+Allocate tokens across these five context types:
+- system_prompt: Core instructions and agent behavior
+- code_context: The source code being reviewed
+- documentation: Style guides, best practices, API docs
+- conversation_history: Previous messages in the review session
+- tool_definitions: Available tools (comment, approve, request_changes)
+
+For each context type, specify:
+- tokens: Number of tokens allocated (all must sum to exactly 8000)
+- priority: 1-5 where 1 is highest priority
+- compression_strategy: How to handle when this section exceeds its budget
+- justification: Brief explanation of why this allocation makes sense
+
+Output only the JSON object with an "allocations" array, no additional text.

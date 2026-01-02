@@ -1,0 +1,21 @@
+[exercise]
+id = "context_01"
+title = "System Prompt Structure"
+track = "context"
+prerequisites = []
+description = "Learn to structure system prompts using sections and XML tags for clarity"
+difficulty = 1
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SystemPromptStructure",
+  "description": "A structured system prompt configuration for an AI assistant",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 500,
+      "description": "The assistant's identity and primary purpose"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 5
+      },
+      "minItems": 3,
+      "maxItems": 10,
+      "description": "List of things the assistant can help with"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 5
+      },
+      "minItems": 2,
+      "maxItems": 10,
+      "description": "Limitations and boundaries for the assistant"
+    },
+    "response_format": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": ["concise", "detailed", "conversational", "formal"],
+          "description": "The style of responses"
+        },
+        "max_length": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 2000,
+          "description": "Maximum response length in characters"
+        },
+        "include_sources": {
+          "type": "boolean",
+          "description": "Whether to include source references"
+        }
+      },
+      "required": ["style", "max_length", "include_sources"],
+      "additionalProperties": false
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "minLength": 5,
+            "description": "Example user message"
+          },
+          "assistant": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Example assistant response"
+          }
+        },
+        "required": ["user", "assistant"],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 5,
+      "description": "Example interactions"
+    }
+  },
+  "required": ["role", "capabilities", "constraints", "response_format", "examples"],
+  "additionalProperties": false
+}

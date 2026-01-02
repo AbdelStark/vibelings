@@ -1,0 +1,17 @@
+Design a token-efficient tool set for a file management agent. Create exactly 5 tools covering these operations:
+- Reading file contents
+- Writing/creating files
+- Listing directory contents
+- Searching for files by pattern
+- Getting file metadata
+
+For each tool in the "tools" array, provide:
+- name: Short, verb-first identifier (e.g., read_file)
+- description: 1-2 sentences explaining what it does (keep under 150 chars)
+- parameters: Array of parameter objects, each with: name, type, required (boolean), description
+- output_schema: Object describing the return value structure
+- token_estimate: Approximate tokens this tool definition uses
+
+Also include an "overlap_analysis" array documenting any potential functional overlaps between tools and how you've minimized them.
+
+Output a JSON object with "tools" and "overlap_analysis" arrays, no additional text.

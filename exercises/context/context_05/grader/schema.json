@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TokenEfficientToolSet",
+  "description": "A token-efficient tool set design for an AI agent",
+  "type": "object",
+  "properties": {
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "minLength": 3,
+            "maxLength": 30,
+            "description": "Tool name in snake_case"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 200,
+            "description": "Concise description of what the tool does"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Parameter name"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["string", "number", "boolean", "array", "object"],
+                  "description": "Parameter type"
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether this parameter is required"
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 150,
+                  "description": "What this parameter is for"
+                }
+              },
+              "required": ["name", "type", "required", "description"],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 5
+          },
+          "output_schema": {
+            "type": "object",
+            "description": "Schema describing what the tool returns",
+            "minProperties": 1
+          },
+          "token_estimate": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 500,
+            "description": "Estimated tokens for this tool definition"
+          }
+        },
+        "required": ["name", "description", "parameters", "output_schema", "token_estimate"],
+        "additionalProperties": false
+      },
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "overlap_analysis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "The two tools being compared"
+          },
+          "potential_overlap": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Description of the potential overlap"
+          },
+          "mitigation": {
+            "type": "string",
+            "minLength": 10,
+            "description": "How the overlap is minimized"
+          }
+        },
+        "required": ["tools", "potential_overlap", "mitigation"],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 5
+    }
+  },
+  "required": ["tools", "overlap_analysis"],
+  "additionalProperties": false
+}
