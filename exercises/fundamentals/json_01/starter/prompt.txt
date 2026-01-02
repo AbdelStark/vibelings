@@ -1,0 +1,3 @@
+Generate a JSON object representing a person named "Alex Chen" who is 28 years old, works as a Data Scientist, and has the email address "alex.chen@techcorp.io".
+
+Your output must be valid JSON that conforms to the Person schema. Output only the JSON object, no additional text.
