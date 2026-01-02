@@ -9,32 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **New exercise**: Added `mcp/resource_01` - MCP Resource Definition (teaches resource schema, URI formats, MIME types)
-- **JSON output mode**: Global `--json` flag for machine-readable output (supports `list`, `run`, `doctor`, `cost`, `verify`, `progress` commands) - enables scripting and CI integration
-- **Exercise search**: `vibelings list --search <query>` filters exercises by keyword (matches ID, title, description) - case-insensitive
-- **Progress dashboard**: `vibelings progress` shows curriculum overview with track-by-track progress, statistics, and motivational messages
-- **Provider fallback chain**: Configure `fallback_providers` in `[model]` section to automatically try alternative providers when primary fails (rate limiting, auth errors, server errors)
+- **Context Engineering track**: 5 new exercises teaching context management for AI agents
+  - `context/context_01` - System prompt structure
+  - `context/context_02` - Context budget management
+  - `context/context_03` - Just-in-time retrieval
+  - `context/context_04` - Conversation compaction
+  - `context/context_05` - Token-efficient tools
+- **New exercise**: `mcp/resource_01` - MCP Resource Definition (resource schema, URI formats, MIME types)
+- **New exercise**: `fundamentals/json_03` - Array Contracts (array validation, item-level constraints)
+- **JSON output mode**: Global `--json` flag for machine-readable output
+- **Exercise search**: `vibelings list --search <query>` filters exercises by keyword
+- **Progress dashboard**: `vibelings progress` shows curriculum overview with track-by-track progress
+- **Provider fallback chain**: Configure `fallback_providers` for automatic failover
 - **ARM64 Linux support**: Release workflow now builds `aarch64-unknown-linux-gnu` binaries
-- **Example configuration**: Added `config.example.toml` with full documentation of all options
+- **Example configuration**: Added `config.example.toml` with full documentation
 - **Security policy**: Added `SECURITY.md` with responsible disclosure process
-- **Provider documentation**: Added provider options table in README
-- **Provider config sections**: Added `[openai]`, `[anthropic]`, and `[local]` config sections to match `config.example.toml`
-- **Retry logic**: Added `RetryingProvider` wrapper with exponential backoff and jitter for rate limiting (429) and transient errors
-- **`create_provider_with_retry`**: New factory function that creates providers with automatic retry logic
-- **New exercise**: Added `fundamentals/json_03` - Array Contracts (teaches array validation and item-level constraints)
-- **Dry-run mode**: `vibelings run --dry-run` previews exercise without making API calls (shows requirements, schema, instructions)
-- **Performance benchmarks**: Added criterion benchmarks for schema validation and JSON parsing (`cargo bench`)
-- **Fixture system**: `FixtureStore` and `ToolFixture` types for deterministic tool responses in exercises - load mock responses from `fixtures/` directory for reproducible grading
+- **Retry logic**: `RetryingProvider` wrapper with exponential backoff and jitter
+- **Dry-run mode**: `vibelings run --dry-run` previews exercise without API calls
+- **Performance benchmarks**: Added criterion benchmarks (`cargo bench`)
+- **Fixture system**: `FixtureStore` and `ToolFixture` for deterministic tool responses
+- **MSRV**: Minimum Supported Rust Version set to 1.73
 
 ### Changed
 
-- **Test coverage**: Added 65 new tests (188 tests total: 98 unit + 19 CLI + 71 grading)
-- **Production readiness audit**: Improved sandbox executor tests, trace store tests, documentation consistency
-- **Better error messages**: All error types now include actionable hints (e.g., "Run: export API_KEY=..." for missing env vars)
-- **Exercise count**: Now 17 exercises across 4 tracks (8 fundamentals + 3 MCP + 3 workflows + 3 production)
-- **README**: Improved configuration documentation with provider options
-- **Provider config**: OpenAI, Anthropic, and Local providers now read API key env var names from their config sections
-- **Exercise runner**: Now uses retry-enabled provider for automatic rate limiting handling
+- **Test coverage**: 231 tests total (100 unit + 19 CLI + 112 grading)
+- **Exercise count**: 22 exercises across 5 tracks (8 fundamentals + 3 MCP + 3 workflows + 3 production + 5 context)
+- **Documentation**: Updated ROADMAP.md with Phase 8 (Production Readiness), fixed test/exercise counts
+- **Cargo.toml**: Added MSRV, homepage, documentation URL, crates.io metadata
+- **Provider config**: All providers now read API key env var names from config sections
+- **Exercise runner**: Uses retry-enabled provider for automatic rate limiting handling
 
 ## [0.1.0] - 2026-01-02
 

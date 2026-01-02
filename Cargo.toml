@@ -2,12 +2,21 @@
 name = "vibelings"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.73"
 authors = ["Vibelings Contributors"]
 description = "Rustlings for agentic programming - learn to build reliable agentic AI systems"
 license = "MIT"
 repository = "https://github.com/AbdelStark/vibelings"
+homepage = "https://github.com/AbdelStark/vibelings"
+documentation = "https://docs.rs/vibelings"
 keywords = ["ai", "agents", "education", "mcp", "llm"]
 categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
+exclude = [
+    "/.github/",
+    "/docs/",
+    "/benches/",
+]
 
 [dependencies]
 # Async runtime

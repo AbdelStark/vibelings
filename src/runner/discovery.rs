@@ -499,4 +499,34 @@ mod tests {
         let runner = ExerciseRunner::new();
         assert!(runner.is_ok());
     }
+
+    #[test]
+    fn test_run_result_default() {
+        let result = RunResult::default();
+        assert!(!result.passed);
+        assert!(result.error_message.is_none());
+        assert_eq!(result.duration_secs, 0.0);
+        assert_eq!(result.cost_usd, 0.0);
+        assert_eq!(result.tool_calls, 0);
+        assert_eq!(result.tokens_in, 0);
+        assert_eq!(result.tokens_out, 0);
+        assert!(result.grading_details.is_none());
+        assert!(result.trace_id.is_none());
+    }
+
+    #[test]
+    fn test_exercise_id_format_validation() {
+        // The get_exercise method expects format "track/id"
+        // This tests the parsing logic by creating a runner and checking behavior
+        let runner = ExerciseRunner::new().unwrap();
+
+        // Invalid format (no slash) should error
+        assert!(runner.get_exercise("invalid").is_err());
+
+        // Too many slashes should error
+        assert!(runner.get_exercise("a/b/c").is_err());
+
+        // Empty parts should error
+        assert!(runner.get_exercise("/empty").is_err());
+    }
 }
