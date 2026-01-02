@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | Phase 1 | Foundation - Core infrastructure | ✅ Complete |
 | Phase 2 | CLI Implementation | ✅ Complete |
-| Phase 3 | First Exercise Track | ✅ Complete (2 exercises) |
+| Phase 3 | First Exercise Track | ✅ Complete (7 exercises) |
 | Phase 4 | Provider Integration | ✅ Complete (OpenRouter) |
 | Phase 5 | Sandbox & Security | ✅ Complete |
 | Phase 6 | Polish & Testing | 🚧 In Progress |
@@ -153,8 +153,11 @@
 ### 2026-01-02 (Session 3)
 - Fixed incorrect stub behavior in graders (Reliability and LlmJudge now return proper errors)
 - Implemented multi-run reliability in ExerciseRunner
-- Added tests for grader error handling
-- All 36 unit tests passing
+- Added tests for grader error handling (36 unit tests total)
+- Added CLI integration tests (11 tests)
+- Added comprehensive README.md documentation
+- Enhanced doctor command with --full API connectivity test
+- Total: 47 tests passing (36 unit + 11 integration)
 - Clarified that multi-run is a runner concern, not a grader type
 
 ### 2026-01-02 (Session 2)
@@ -207,11 +210,12 @@ Core dependencies:
 
 ## Next Steps
 
-1. Add more exercises to fundamentals track
-2. Implement tool calling exercises
-3. Add integration tests
-4. Complete README.md with usage docs
-5. Set up CI/CD pipeline
+1. ~~Add integration tests~~ ✅ Done (11 tests)
+2. ~~Complete README.md with usage docs~~ ✅ Done
+3. Add AGENTS.md for agent guidance
+4. Set up CI/CD pipeline with GitHub Actions
+5. Add more exercises to MCP track
+6. Implement direct OpenAI/Anthropic providers
 
 ---
 
