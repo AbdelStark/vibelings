@@ -23,11 +23,7 @@ pub async fn run(run_id: &str) -> Result<()> {
         style("Timestamp:").dim(),
         style(&trace.timestamp).cyan()
     );
-    println!(
-        "  {} {:.2}s",
-        style("Duration:").dim(),
-        trace.duration_secs
-    );
+    println!("  {} {:.2}s", style("Duration:").dim(), trace.duration_secs);
     println!(
         "  {} {}",
         style("Result:").dim(),
@@ -135,11 +131,7 @@ pub async fn run(run_id: &str) -> Result<()> {
         style(result_text).red().bold()
     };
 
-    println!(
-        "  {} Replay complete: {}",
-        icons::CHECK,
-        result_style
-    );
+    println!("  {} Replay complete: {}", icons::CHECK, result_style);
     println!();
 
     Ok(())

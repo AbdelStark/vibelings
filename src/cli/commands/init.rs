@@ -40,23 +40,17 @@ pub async fn run(track: Option<&str>) -> Result<()> {
 
     // Show checklist of created items
     println!(
-        "  {} {}",
-        style(icons::CHECK).green(),
-        "Created exercises/ directory"
+        "  {} Created exercises/ directory",
+        style(icons::CHECK).green()
     );
     println!(
-        "  {} {}",
-        style(icons::CHECK).green(),
-        "Created track directories"
+        "  {} Created track directories",
+        style(icons::CHECK).green()
     );
 
     // Create or load config
     let _config = load_or_create_config()?;
-    println!(
-        "  {} {}",
-        style(icons::CHECK).green(),
-        "Configuration ready"
-    );
+    println!("  {} Configuration ready", style(icons::CHECK).green());
 
     // Create local config file if it doesn't exist
     let local_config_path = Path::new(".vibelings.toml");
@@ -73,11 +67,7 @@ pub async fn run(track: Option<&str>) -> Result<()> {
 # timeout_seconds = 60
 "#;
         fs::write(local_config_path, local_config)?;
-        println!(
-            "  {} {}",
-            style(icons::CHECK).green(),
-            "Created .vibelings.toml"
-        );
+        println!("  {} Created .vibelings.toml", style(icons::CHECK).green());
     }
 
     // Create README for exercises
@@ -107,9 +97,8 @@ Run `vibelings` in this directory to start the interactive learning experience.
 "#;
         fs::write(&exercises_readme, readme_content)?;
         println!(
-            "  {} {}",
-            style(icons::CHECK).green(),
-            "Created exercises/README.md"
+            "  {} Created exercises/README.md",
+            style(icons::CHECK).green()
         );
     }
 

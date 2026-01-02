@@ -41,22 +41,14 @@ pub async fn run(exercise: &str, force: bool) -> Result<()> {
 
     if !force {
         let confirmed = Confirm::new()
-            .with_prompt(format!(
-                "  {} Reset '{}'?",
-                icons::QUESTION,
-                exercise
-            ))
+            .with_prompt(format!("  {} Reset '{}'?", icons::QUESTION, exercise))
             .default(false)
             .interact()
             .unwrap_or(false);
 
         if !confirmed {
             println!();
-            println!(
-                "  {} {}",
-                icons::INFO,
-                style("Reset cancelled.").dim()
-            );
+            println!("  {} {}", icons::INFO, style("Reset cancelled.").dim());
             println!();
             return Ok(());
         }

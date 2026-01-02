@@ -159,15 +159,9 @@ pub fn draw_box(title: &str, content: &[&str], width: usize) {
     let padding_right = inner_width.saturating_sub(padding_left + title_len);
 
     print!("{}", style(TOP_LEFT).cyan());
-    print!(
-        "{}",
-        style(HORIZONTAL.repeat(padding_left)).cyan()
-    );
+    print!("{}", style(HORIZONTAL.repeat(padding_left)).cyan());
     print!("{}", style(&title_display).cyan().bold());
-    print!(
-        "{}",
-        style(HORIZONTAL.repeat(padding_right)).cyan()
-    );
+    print!("{}", style(HORIZONTAL.repeat(padding_right)).cyan());
     println!("{}", style(TOP_RIGHT).cyan());
 
     // Content lines
@@ -176,28 +170,18 @@ pub fn draw_box(title: &str, content: &[&str], width: usize) {
         let padding = inner_width.saturating_sub(line_len);
         print!("{} ", style(VERTICAL).cyan());
         print!("{}", line);
-        println!(
-            "{}{}",
-            " ".repeat(padding),
-            style(VERTICAL).cyan()
-        );
+        println!("{}{}", " ".repeat(padding), style(VERTICAL).cyan());
     }
 
     // Bottom border
     print!("{}", style(BOTTOM_LEFT).cyan());
-    print!(
-        "{}",
-        style(HORIZONTAL.repeat(inner_width)).cyan()
-    );
+    print!("{}", style(HORIZONTAL.repeat(inner_width)).cyan());
     println!("{}", style(BOTTOM_RIGHT).cyan());
 }
 
 /// Draw a simple horizontal divider
 pub fn divider(width: usize) {
-    println!(
-        "{}",
-        style(box_chars::HORIZONTAL.repeat(width)).dim()
-    );
+    println!("{}", style(box_chars::HORIZONTAL.repeat(width)).dim());
 }
 
 /// Draw a section header with decorative line
@@ -210,15 +194,9 @@ pub fn section_header(title: &str) {
     let right_pad = remaining;
 
     println!();
-    print!(
-        "{}",
-        style(box_chars::HORIZONTAL.repeat(left_pad)).cyan()
-    );
+    print!("{}", style(box_chars::HORIZONTAL.repeat(left_pad)).cyan());
     print!("{}", style(&title_with_padding).cyan().bold());
-    println!(
-        "{}",
-        style(box_chars::HORIZONTAL.repeat(right_pad)).cyan()
-    );
+    println!("{}", style(box_chars::HORIZONTAL.repeat(right_pad)).cyan());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -319,11 +297,7 @@ pub fn print_header() {
 /// Display a compact header for commands
 pub fn print_command_header(icon: &str, title: &str) {
     println!();
-    println!(
-        "  {} {}",
-        icon,
-        style(title).cyan().bold()
-    );
+    println!("  {} {}", icon, style(title).cyan().bold());
     println!();
 }
 
@@ -378,7 +352,7 @@ pub fn print_exercise_card(
     use box_chars::*;
 
     let term_width = Term::stdout().size().1 as usize;
-    let width = term_width.min(60).max(40);
+    let width = term_width.clamp(40, 60);
     let inner_width = width - 2;
 
     // Top border
@@ -504,11 +478,7 @@ pub fn key_hint(key: &str, description: &str) -> String {
 /// Display a success result with celebration
 pub fn print_success(message: &str, details: Option<&str>) {
     println!();
-    println!(
-        "  {} {}",
-        icons::CHECK,
-        style(message).green().bold()
-    );
+    println!("  {} {}", icons::CHECK, style(message).green().bold());
     if let Some(d) = details {
         println!("     {}", style(d).dim());
     }
@@ -517,11 +487,7 @@ pub fn print_success(message: &str, details: Option<&str>) {
 /// Display a failure result
 pub fn print_failure(message: &str, details: Option<&str>) {
     println!();
-    println!(
-        "  {} {}",
-        icons::CROSS,
-        style(message).red().bold()
-    );
+    println!("  {} {}", icons::CROSS, style(message).red().bold());
     if let Some(d) = details {
         println!("     {}", style(d).dim());
     }
@@ -530,20 +496,12 @@ pub fn print_failure(message: &str, details: Option<&str>) {
 /// Display a warning message
 pub fn print_warning(message: &str) {
     println!();
-    println!(
-        "  {} {}",
-        icons::WARNING,
-        style(message).yellow()
-    );
+    println!("  {} {}", icons::WARNING, style(message).yellow());
 }
 
 /// Display an info message
 pub fn print_info(message: &str) {
-    println!(
-        "  {} {}",
-        icons::INFO,
-        style(message).dim()
-    );
+    println!("  {} {}", icons::INFO, style(message).dim());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -627,7 +585,7 @@ pub fn table_header(columns: &[(&str, usize)]) {
 
     for (name, width) in columns {
         header.push_str(&format!("{:width$}", style(name).bold(), width = width));
-        separator.push_str(&format!("{}", box_chars::HORIZONTAL.repeat(*width)));
+        separator.push_str(&box_chars::HORIZONTAL.repeat(*width).to_string());
     }
 
     println!("{}", header);
@@ -692,13 +650,11 @@ pub fn truncate_str(s: &str, max_len: usize) -> String {
         // This is approximate since we're dealing with graphemes
         let chars: Vec<char> = s.chars().collect();
         let mut result = String::new();
-        let mut len = 0;
-        for c in chars {
+        for (len, c) in chars.into_iter().enumerate() {
             if len + 3 >= max_len {
                 break;
             }
             result.push(c);
-            len += 1;
         }
         result.push_str("...");
         result

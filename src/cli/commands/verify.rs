@@ -79,11 +79,7 @@ pub async fn run(exercise: Option<&str>) -> Result<()> {
                     style(icons::CROSS).red()
                 );
                 if let Some(error) = result.error_message {
-                    println!(
-                        "       {} {}",
-                        icons::ARROW_RIGHT,
-                        style(error).red().dim()
-                    );
+                    println!("       {} {}", icons::ARROW_RIGHT, style(error).red().dim());
                 }
                 failed += 1;
             }

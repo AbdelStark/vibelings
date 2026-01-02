@@ -115,11 +115,7 @@ pub async fn run() -> Result<()> {
                 }
             }
             Ok(Err(e)) => {
-                eprintln!(
-                    "  {} Watch error: {:?}",
-                    style(icons::CROSS).red(),
-                    e
-                );
+                eprintln!("  {} Watch error: {:?}", style(icons::CROSS).red(), e);
             }
             Err(_) => {
                 // Timeout - continue to check keyboard
@@ -355,10 +351,7 @@ fn handle_hint(runner: &ExerciseRunner, exercise_id: &str) -> Result<()> {
     let hints = runner.get_hints(exercise_id)?;
 
     if hints.is_empty() {
-        println!(
-            "  {}",
-            style("No hints available for this exercise.").dim()
-        );
+        println!("  {}", style("No hints available for this exercise.").dim());
         println!();
         return Ok(());
     }

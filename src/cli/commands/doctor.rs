@@ -141,7 +141,9 @@ pub async fn run(full: bool) -> Result<()> {
         println!(
             "  {} {}",
             icons::TROPHY,
-            style("All checks passed! You're ready to go.").green().bold()
+            style("All checks passed! You're ready to go.")
+                .green()
+                .bold()
         );
 
         // Progress bar showing checks
