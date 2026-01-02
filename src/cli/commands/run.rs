@@ -171,11 +171,7 @@ fn run_dry_run(exercise: &Exercise) -> Result<()> {
         exercise.manifest.run.runs
     );
     if let Some(required) = exercise.manifest.run.required_passes {
-        println!(
-            "  {} Required passes: {}",
-            icons::ARROW_RIGHT,
-            required
-        );
+        println!("  {} Required passes: {}", icons::ARROW_RIGHT, required);
     }
     println!();
 
@@ -203,7 +199,11 @@ fn run_dry_run(exercise: &Exercise) -> Result<()> {
                     }
                     let line_count = pretty.lines().count();
                     if line_count > 30 {
-                        println!("  {} ... ({} more lines)", style("...").dim(), line_count - 30);
+                        println!(
+                            "  {} ... ({} more lines)",
+                            style("...").dim(),
+                            line_count - 30
+                        );
                     }
                 }
             }
