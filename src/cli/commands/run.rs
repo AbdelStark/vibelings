@@ -61,59 +61,55 @@ fn display_human_result(result: &crate::runner::RunResult) {
     if result.passed {
         ui::celebrate_pass();
         println!();
-
-        // Stats in a nice format
-        println!(
-            "  {}  {} {:.1}s",
-            icons::CLOCK,
-            style("Duration:").dim(),
-            result.duration_secs
-        );
-        println!(
-            "  {}  {} ${:.4}",
-            icons::DOLLAR,
-            style("Cost:").dim(),
-            result.cost_usd
-        );
-        println!(
-            "  {}  {} {}",
-            icons::GEAR,
-            style("Tool calls:").dim(),
-            result.tool_calls
-        );
-        println!(
-            "  {}  {} {} in / {} out",
-            icons::ARROW_RIGHT,
-            style("Tokens:").dim(),
+        ui::print_run_stats(
+            result.duration_secs,
+            result.cost_usd,
             result.tokens_in,
-            result.tokens_out
+            result.tokens_out,
         );
+
+        if result.tool_calls > 0 {
+            println!(
+                "     {} {} {}",
+                style(icons::GEAR).dim(),
+                style("Tool calls:").dim(),
+                style(result.tool_calls).cyan()
+            );
+        }
     } else {
         println!();
         println!(
             "  {} {}",
-            style(icons::CROSS).red(),
+            style(icons::CROSS).red().bold(),
             style("FAILED").red().bold()
+        );
+        println!(
+            "  {}",
+            style("━━━━━━━━━━━━━━━━━━━━━").red().dim()
         );
         println!();
 
         // Stats
-        println!(
-            "  {}  {} {:.1}s",
-            icons::CLOCK,
-            style("Duration:").dim(),
-            result.duration_secs
-        );
-        println!(
-            "  {}  {} ${:.4}",
-            icons::DOLLAR,
-            style("Cost:").dim(),
-            result.cost_usd
+        ui::print_run_stats(
+            result.duration_secs,
+            result.cost_usd,
+            result.tokens_in,
+            result.tokens_out,
         );
 
         if let Some(ref error) = result.error_message {
             println!();
-            println!("  {} {}", style("Error:").red().bold(), error);
+            println!(
+                "  {} {}",
+                style(icons::WARNING).yellow(),
+                style("Error Details").yellow().bold()
+            );
+            println!();
+            // Wrap long error messages
+            let wrapped = ui::wrap_text(error, 60);
+            for line in wrapped {
+                println!("     {}", style(&line).dim());
+            }
         }
     }
 
@@ -123,7 +119,13 @@ fn display_human_result(result: &crate::runner::RunResult) {
         ui::section_header("Grading Details");
         println!();
         for line in grading.lines() {
-            println!("  {}", style(line).dim());
+            if line.contains("✓") || line.to_lowercase().contains("pass") {
+                println!("  {}", style(line).green());
+            } else if line.contains("✗") || line.to_lowercase().contains("fail") {
+                println!("  {}", style(line).red());
+            } else {
+                println!("  {}", style(line).dim());
+            }
         }
     }
 
