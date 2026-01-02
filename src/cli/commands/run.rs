@@ -83,10 +83,7 @@ fn display_human_result(result: &crate::runner::RunResult) {
             style(icons::CROSS).red().bold(),
             style("FAILED").red().bold()
         );
-        println!(
-            "  {}",
-            style("━━━━━━━━━━━━━━━━━━━━━").red().dim()
-        );
+        println!("  {}", style("━━━━━━━━━━━━━━━━━━━━━").red().dim());
         println!();
 
         // Stats

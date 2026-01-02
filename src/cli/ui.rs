@@ -332,10 +332,7 @@ pub fn print_watch_header() {
         style("VIBELINGS").cyan().bold(),
         style("• Watch Mode").dim()
     );
-    println!(
-        "  {}",
-        style("━".repeat(48)).cyan().dim()
-    );
+    println!("  {}", style("━".repeat(48)).cyan().dim());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -474,12 +471,7 @@ pub fn print_exercise_card(
 /// Display keyboard shortcut hints in watch mode
 pub fn print_key_hints() {
     println!();
-    print_key_bar(&[
-        ("h", "hint"),
-        ("n", "next"),
-        ("l", "list"),
-        ("q", "quit"),
-    ]);
+    print_key_bar(&[("h", "hint"), ("n", "next"), ("l", "list"), ("q", "quit")]);
 }
 
 /// Display a single key hint
@@ -504,16 +496,17 @@ pub fn print_key_bar(keys: &[(&str, &str)]) {
 pub fn print_key_footer(keys: &[(&str, &str)]) {
     let keys_str: Vec<String> = keys
         .iter()
-        .map(|(k, d)| format!("{}{}", style(*k).cyan().bold(), style(format!(":{}", d)).dim()))
+        .map(|(k, d)| {
+            format!(
+                "{}{}",
+                style(*k).cyan().bold(),
+                style(format!(":{}", d)).dim()
+            )
+        })
         .collect();
     let content = keys_str.join(" │ ");
     println!();
-    println!(
-        "  {} {} {}",
-        style("╶").dim(),
-        content,
-        style("╴").dim()
-    );
+    println!("  {} {} {}", style("╶").dim(), content, style("╴").dim());
 }
 
 /// Display a status line with current mode and info
@@ -573,10 +566,7 @@ pub fn celebrate_pass() {
         icons::SPARKLE,
         style("PASSED!").green().bold()
     );
-    println!(
-        "  {}",
-        style("━━━━━━━━━━━━━━━━━━━━━").green().dim()
-    );
+    println!("  {}", style("━━━━━━━━━━━━━━━━━━━━━").green().dim());
 }
 
 /// Display a compact success message
@@ -776,21 +766,9 @@ pub fn print_progress_bar(completed: usize, total: usize) {
     );
 
     let styled_bar = match bar_color {
-        "green" => format!(
-            "[{}{}]",
-            style(filled_str).green(),
-            style(empty_str).dim()
-        ),
-        "cyan" => format!(
-            "[{}{}]",
-            style(filled_str).cyan(),
-            style(empty_str).dim()
-        ),
-        _ => format!(
-            "[{}{}]",
-            style(filled_str).yellow(),
-            style(empty_str).dim()
-        ),
+        "green" => format!("[{}{}]", style(filled_str).green(), style(empty_str).dim()),
+        "cyan" => format!("[{}{}]", style(filled_str).cyan(), style(empty_str).dim()),
+        _ => format!("[{}{}]", style(filled_str).yellow(), style(empty_str).dim()),
     };
     println!("  {}", styled_bar);
 }

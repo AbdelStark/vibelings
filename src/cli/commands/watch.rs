@@ -334,11 +334,7 @@ fn display_exercise_info(
 
             if !content_lines.is_empty() {
                 println!();
-                println!(
-                    "  {} {}",
-                    icons::BOOK,
-                    style("Instructions").white().bold()
-                );
+                println!("  {} {}", icons::BOOK, style("Instructions").white().bold());
                 println!();
                 for line in &content_lines {
                     if !line.trim().is_empty() {
