@@ -1,0 +1,23 @@
+You are designing an evaluation harness for a customer support agent.
+
+Create an eval harness that measures the agent's reliability in:
+1. Classifying support tickets
+2. Generating appropriate responses
+
+Output ONLY valid JSON - no explanation or other text.
+
+Required structure:
+{
+  "eval_harness": {
+    "name": "...",
+    "agent_under_test": {...},  // name, capabilities, model
+    "test_cases": [...],         // minimum 3 cases with id, input, expected, type
+    "metrics": [...],            // minimum 2 metrics with name, type, threshold, aggregation
+    "reliability": {...},        // runs_per_case, pass_threshold, confidence_interval
+    "regression_detection": {...} // baseline, tolerance, alert_on_degradation
+  }
+}
+
+Test case types: "deterministic", "semantic", "behavioral"
+Metric types: "accuracy", "latency", "cost", "reliability"
+Aggregation: "mean", "median", "p95", "p99", "min", "max"

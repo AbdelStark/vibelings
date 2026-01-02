@@ -1,0 +1,21 @@
+[exercise]
+id = "production_budget_01"
+title = "Cost and Latency Budgets"
+track = "production"
+prerequisites = ["production_security_01"]
+description = "Learn to define and enforce cost and latency budgets for agent operations"
+difficulty = 3
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

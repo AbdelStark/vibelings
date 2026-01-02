@@ -1296,3 +1296,229 @@ fn test_workflow_human_loop_01_timeout_too_short() {
     let result = grader.grade(&exercise, invalid_output).unwrap();
     assert!(!result.passed, "Expected timeout < 60 seconds to fail");
 }
+
+// =============================================================================
+// PRODUCTION_EVAL_01 Tests - Evaluation Harness Design
+// =============================================================================
+
+#[test]
+fn test_production_eval_01_valid_harness() {
+    let exercise = load_exercise("production", "production_eval_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "eval_harness": {
+            "name": "Customer Support Eval",
+            "agent_under_test": {
+                "name": "support_agent",
+                "capabilities": ["classification"],
+                "model": "claude-sonnet-4-20250514"
+            },
+            "test_cases": [
+                {"id": "tc1", "input": "billing issue", "expected": {"category": "billing"}, "type": "deterministic"},
+                {"id": "tc2", "input": "system down", "expected": {"category": "technical"}, "type": "deterministic"},
+                {"id": "tc3", "input": "frustrated", "expected": "empathy", "type": "semantic"}
+            ],
+            "metrics": [
+                {"name": "accuracy", "type": "accuracy", "threshold": 0.95, "aggregation": "mean"},
+                {"name": "latency", "type": "latency", "threshold": 2000, "aggregation": "p95"}
+            ],
+            "reliability": {
+                "runs_per_case": 5,
+                "pass_threshold": 0.8,
+                "confidence_interval": 0.95
+            },
+            "regression_detection": {
+                "baseline": "v1.0",
+                "tolerance": 0.05,
+                "alert_on_degradation": true
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid eval harness to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_production_eval_01_production_track() {
+    let exercise = load_exercise("production", "production_eval_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Production,
+        "Exercise should be in production track"
+    );
+}
+
+#[test]
+fn test_production_eval_01_missing_test_cases() {
+    let exercise = load_exercise("production", "production_eval_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "eval_harness": {
+            "name": "Test",
+            "agent_under_test": {"name": "agent", "capabilities": ["a"], "model": "m"},
+            "test_cases": [
+                {"id": "tc1", "input": "x", "expected": "y", "type": "deterministic"}
+            ],
+            "metrics": [
+                {"name": "m1", "type": "accuracy", "threshold": 0.9, "aggregation": "mean"},
+                {"name": "m2", "type": "latency", "threshold": 1000, "aggregation": "p95"}
+            ],
+            "reliability": {"runs_per_case": 5, "pass_threshold": 0.8, "confidence_interval": 0.95},
+            "regression_detection": {"baseline": "v1", "tolerance": 0.05, "alert_on_degradation": true}
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected < 3 test cases to fail");
+}
+
+// =============================================================================
+// PRODUCTION_SECURITY_01 Tests - Prompt Injection Defense
+// =============================================================================
+
+#[test]
+fn test_production_security_01_valid_config() {
+    let exercise = load_exercise("production", "production_security_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "security_config": {
+            "name": "Agent Security v1",
+            "input_validation": {
+                "max_length": 10000,
+                "blocked_patterns": ["ignore instructions"],
+                "sanitization_rules": [{"type": "strip"}],
+                "encoding_check": true
+            },
+            "output_filtering": {
+                "action_allowlist": ["read", "respond"],
+                "pii_detection": true
+            },
+            "privilege_separation": {
+                "trust_levels": [
+                    {"name": "user", "level": 1},
+                    {"name": "admin", "level": 2}
+                ],
+                "tool_permissions": {"read": 1, "write": 2}
+            },
+            "attack_detection": {
+                "patterns": [{"name": "override", "pattern": "ignore.*instruction", "severity": "high"}],
+                "logging_level": "verbose"
+            },
+            "response_procedures": {
+                "on_detection": "block_and_log",
+                "quarantine": true
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid security config to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_production_security_01_missing_trust_levels() {
+    let exercise = load_exercise("production", "production_security_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "security_config": {
+            "name": "Test",
+            "input_validation": {"max_length": 1000, "blocked_patterns": ["x"], "sanitization_rules": [{}]},
+            "output_filtering": {"action_allowlist": ["a"]},
+            "privilege_separation": {
+                "trust_levels": [{"name": "user", "level": 1}],
+                "tool_permissions": {"a": 1}
+            },
+            "attack_detection": {"patterns": [{"name": "x", "pattern": "x"}], "logging_level": "minimal"},
+            "response_procedures": {"on_detection": "log_only"}
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected < 2 trust levels to fail");
+}
+
+// =============================================================================
+// PRODUCTION_BUDGET_01 Tests - Cost and Latency Budgets
+// =============================================================================
+
+#[test]
+fn test_production_budget_01_valid_config() {
+    let exercise = load_exercise("production", "production_budget_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "budget_config": {
+            "name": "Production Budget",
+            "cost_limits": {
+                "per_request_max_usd": 0.10,
+                "daily_limit_usd": 100.0,
+                "monthly_limit_usd": 2000.0
+            },
+            "latency_slos": {
+                "p50_ms": 1000,
+                "p95_ms": 3000,
+                "p99_ms": 5000,
+                "timeout_ms": 10000
+            },
+            "token_limits": {
+                "max_input_tokens": 4096,
+                "max_output_tokens": 2048,
+                "max_total_tokens": 8192
+            },
+            "degradation_policy": {
+                "on_cost_warning": ["use_smaller_model"],
+                "on_latency_warning": ["skip_tools"],
+                "on_limit_reached": "reject"
+            },
+            "monitoring": {
+                "metrics_to_track": ["cost", "latency"],
+                "alert_channels": ["slack"],
+                "dashboard_enabled": true
+            }
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid budget config to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_production_budget_01_invalid_on_limit_reached() {
+    let exercise = load_exercise("production", "production_budget_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "budget_config": {
+            "name": "Test",
+            "cost_limits": {"per_request_max_usd": 0.1, "daily_limit_usd": 100, "monthly_limit_usd": 1000},
+            "latency_slos": {"p50_ms": 100, "p95_ms": 200, "p99_ms": 300, "timeout_ms": 500},
+            "token_limits": {"max_input_tokens": 100, "max_output_tokens": 100, "max_total_tokens": 200},
+            "degradation_policy": {
+                "on_cost_warning": ["a"],
+                "on_latency_warning": ["b"],
+                "on_limit_reached": "crash"
+            },
+            "monitoring": {"metrics_to_track": ["x"], "alert_channels": ["y"]}
+        }
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid on_limit_reached value to fail");
+}

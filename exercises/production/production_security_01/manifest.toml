@@ -1,0 +1,21 @@
+[exercise]
+id = "production_security_01"
+title = "Prompt Injection Defense"
+track = "production"
+prerequisites = ["production_eval_01"]
+description = "Learn to design defense patterns against prompt injection attacks"
+difficulty = 4
+
+[requirements]
+tool_calling = false
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 0
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "schema"
+schema_path = "schema.json"

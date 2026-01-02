@@ -1,0 +1,25 @@
+You are designing a budget configuration for a customer-facing agent.
+
+Create limits for cost, latency, and tokens with graceful degradation strategies.
+
+Output ONLY valid JSON - no explanation or other text.
+
+Required structure:
+{
+  "budget_config": {
+    "name": "...",
+    "cost_limits": {...},           // per_request_max_usd, daily_limit_usd, monthly_limit_usd
+    "latency_slos": {...},          // p50_ms, p95_ms, p99_ms, timeout_ms
+    "token_limits": {...},          // max_input_tokens, max_output_tokens, max_total_tokens
+    "degradation_policy": {...},    // on_cost_warning, on_latency_warning, on_limit_reached
+    "monitoring": {...}             // metrics_to_track, alert_channels
+  }
+}
+
+cost_limits: per-request, daily, monthly limits in USD
+latency_slos: percentile targets in milliseconds
+token_limits: input, output, and total token limits
+degradation_policy:
+  - on_cost_warning/on_latency_warning: arrays of actions to take
+  - on_limit_reached: "reject", "queue", "degrade", or "fallback"
+monitoring: metrics_to_track and alert_channels (both arrays with at least 1 item)
