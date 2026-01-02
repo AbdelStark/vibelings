@@ -97,10 +97,7 @@ pub async fn run() -> Result<()> {
     let mut current_passed = false;
 
     println!();
-    println!(
-        "{}",
-        style("Watching for changes...").dim()
-    );
+    println!("{}", style("Watching for changes...").dim());
     println!();
     display_key_hints();
 
@@ -297,7 +294,9 @@ fn handle_hint(runner: &ExerciseRunner, exercise_id: &str) -> Result<()> {
     println!();
     println!(
         "{}",
-        style(format!("💡 Hints for: {}", exercise_id)).yellow().bold()
+        style(format!("💡 Hints for: {}", exercise_id))
+            .yellow()
+            .bold()
     );
     println!();
 

@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: vibelings-linux-x86_64
+            ext: ''
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: vibelings-macos-x86_64
+            ext: ''
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: vibelings-macos-aarch64
+            ext: ''
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            name: vibelings-windows-x86_64
+            ext: '.exe'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Prepare artifact (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/vibelings dist/${{ matrix.name }}
+          chmod +x dist/${{ matrix.name }}
+          cd dist && tar -czvf ${{ matrix.name }}.tar.gz ${{ matrix.name }}
+
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          Copy-Item "target/${{ matrix.target }}/release/vibelings${{ matrix.ext }}" "dist/${{ matrix.name }}${{ matrix.ext }}"
+          Compress-Archive -Path "dist/${{ matrix.name }}${{ matrix.ext }}" -DestinationPath "dist/${{ matrix.name }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | head -20
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -name "*.tar.gz" -o -name "*.zip" | while read file; do
+            sha256sum "$file" >> checksums.txt
+          done
+          cat checksums.txt
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: vibelings ${{ steps.version.outputs.version }}
+          body: |
+            ## vibelings ${{ steps.version.outputs.version }}
+
+            ### Installation
+
+            Download the binary for your platform:
+
+            | Platform | Download |
+            |----------|----------|
+            | Linux x86_64 | [vibelings-linux-x86_64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/vibelings-linux-x86_64.tar.gz) |
+            | macOS x86_64 | [vibelings-macos-x86_64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/vibelings-macos-x86_64.tar.gz) |
+            | macOS ARM64 | [vibelings-macos-aarch64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/vibelings-macos-aarch64.tar.gz) |
+            | Windows x86_64 | [vibelings-windows-x86_64.zip](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/vibelings-windows-x86_64.zip) |
+
+            Or install from source:
+            ```bash
+            cargo install --git https://github.com/${{ github.repository }}
+            ```
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+            artifacts/checksums.txt
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
