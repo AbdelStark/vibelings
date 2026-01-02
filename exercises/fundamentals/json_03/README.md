@@ -12,12 +12,43 @@ arrays of tool calls, batches of records to process. Each item in an array must
 conform to its own schema, and the array itself may have constraints (min/max items,
 uniqueness).
 
-This exercise teaches:
+Consider an LLM generating a batch of database operations, or a list of files to modify, or a sequence of API calls. If one item is malformed, you might:
+- Fail the entire batch (frustrating but safe)
+- Process partial results (risky—which items succeeded?)
+- Silently skip bad items (dangerous—data loss)
 
-1. **Array item validation** - Each item must match the schema
-2. **Array-level constraints** - Minimum/maximum number of items
-3. **Object arrays** - Complex objects within arrays
-4. **Practical data modeling** - Real-world schedule representation
+Schema validation surfaces these problems immediately, before execution.
+
+## The Concept: Array Schema Constraints
+
+JSON Schema provides two levels of array validation:
+
+**Item-level**: What each element must look like
+```json
+{
+  "items": {
+    "type": "object",
+    "properties": { ... },
+    "required": [ ... ]
+  }
+}
+```
+
+**Array-level**: Constraints on the collection itself
+```json
+{
+  "type": "array",
+  "minItems": 2,
+  "maxItems": 10,
+  "uniqueItems": true
+}
+```
+
+This dual validation catches both:
+- Individual items that are malformed
+- Collections that are too small, too large, or have duplicates
+
+**The analogy**: Think of a database table. Each row must match the table schema (item validation). The table might have constraints like "at least one row" or "primary key must be unique" (array validation).
 
 ## Requirements
 
@@ -75,6 +106,34 @@ Each session must have:
 }
 ```
 
+## Common Mistakes
+
+**1. Too few or too many items**
+```json
+{"sessions": [{"...": "..."}]}           // Wrong: only 1 session (min 2)
+{"sessions": [...11 sessions...]}        // Wrong: 11 sessions (max 10)
+```
+
+**2. Duration outside valid range**
+```json
+{"duration_minutes": 10}     // Wrong: below minimum (15)
+{"duration_minutes": 180}    // Wrong: above maximum (120)
+{"duration_minutes": "60"}   // Wrong: string instead of integer
+```
+
+**3. Invalid time format**
+```json
+{"time_slot": "9:00"}       // Wrong: needs leading zero
+{"time_slot": "09:00 AM"}   // Wrong: 24h format, no AM/PM
+{"time_slot": "09:00"}      // Correct
+```
+
+**4. Empty arrays or missing fields**
+```json
+{"sessions": []}                         // Wrong: empty (min 2)
+{"sessions": [{"id": "S001"}]}          // Wrong: session missing fields
+```
+
 ## Grading
 
 Your output will be validated against the JSON Schema in `grader/schema.json`. The exercise passes if:
@@ -93,11 +152,25 @@ Your output will be validated against the JSON Schema in `grader/schema.json`. T
 each element must be valid. In production systems, a single malformed item in an array
 can break downstream processing.
 
-When working with collections:
-- Define clear schemas for array items
-- Set sensible bounds on array size
-- Use enums for constrained string fields
-- Validate each item independently
+Think of arrays as contracts with two parts:
+1. **The container contract**: "I promise to have 2-10 items"
+2. **The item contract**: "I promise each item has these fields with these types"
+
+Both contracts must be satisfied. An empty array violates the container contract. A malformed item violates the item contract. Either failure means the whole validation fails.
+
+This strictness is a feature, not a bug. It surfaces problems early, before they cascade through your system.
+
+## Connections
+
+- **Prerequisite**: [json_02](../json_02/) introduces nested objects
+- **Related**: [tools_02](../tools_02/) uses arrays of tool calls
+- **Production**: [production_eval_01](../../production/production_eval_01/) validates arrays of test cases
+
+## Further Reading
+
+- [JSON Schema: Arrays](https://json-schema.org/understanding-json-schema/reference/array) — Full array validation reference
+- [Batch processing patterns](https://docs.anthropic.com/en/docs/build-with-claude/batch-processing) — Handling multiple items efficiently
+- [Time formats](https://en.wikipedia.org/wiki/ISO_8601#Times) — ISO 8601 time representation
 
 ## Hints
 

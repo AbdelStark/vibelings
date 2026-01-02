@@ -11,12 +11,38 @@ Real-world agentic tasks rarely require just one tool call. Consider booking tra
 you might need to search flights, check availability, get user preferences, validate
 payment, and finally book. Each step depends on previous results.
 
-This exercise teaches:
+Or consider the task in this exercise: fixing a bug. You must read the code before you can understand it, understand it before you can fix it, fix it before you can test it. Skip any step, and you fail.
 
-1. **Tool sequencing** - calling tools in the right order
-2. **Data flow** - using outputs from one tool as inputs to another
-3. **Task decomposition** - breaking complex goals into tool-sized steps
-4. **Minimal tool usage** - don't call tools unnecessarily
+This is where "agentic" systems become actual engineering. It's not about clever prompts; it's about disciplined workflows.
+
+## The Concept: Tool Dependency Graphs
+
+Every multi-tool task has an implicit **dependency graph**:
+
+```
+read_file("orders.py")
+        │
+        ▼
+analyze & plan fix (implicit reasoning step)
+        │
+        ▼
+write_file("orders.py", fixed_content)
+        │
+        ▼
+run_tests()
+```
+
+Some dependencies are hard constraints:
+- You **cannot** write a file you haven't read (you'd overwrite with garbage)
+- You **should not** consider the task complete without verification
+
+Others are soft constraints:
+- You **might** want to search for related code first
+- You **could** run tests before and after to compare
+
+Reliable agents encode these constraints explicitly. They don't rely on the LLM "figuring out" the right order.
+
+**The analogy**: This is like a build system (Make, Bazel). You declare dependencies, and the system ensures correct ordering. Agentic workflows need the same discipline.
 
 ## The Task
 
@@ -66,21 +92,60 @@ Run the test suite.
 }
 ```
 
+## Common Mistakes
+
+**1. Writing before reading**
+```json
+[
+  {"name": "write_file", "arguments": {"path": "orders.py", "content": "..."}},
+  {"name": "read_file", "arguments": {"path": "orders.py"}}
+]
+```
+This is backwards. You can't fix code you haven't seen.
+
+**2. Skipping verification**
+```json
+[
+  {"name": "read_file", "arguments": {"path": "orders.py"}},
+  {"name": "write_file", "arguments": {"path": "orders.py", "content": "..."}}
+]
+```
+How do you know the fix works? Always verify with tests.
+
+**3. Unnecessary tool calls**
+```json
+[
+  {"name": "search_code", "arguments": {"pattern": "calculate_total"}},
+  {"name": "search_code", "arguments": {"pattern": "orders"}},
+  {"name": "search_code", "arguments": {"pattern": "total"}},
+  {"name": "read_file", "arguments": {"path": "orders.py"}},
+  ...
+]
+```
+You already know the file is `orders.py`. Don't search for what you already know.
+
+**4. Missing required parameters**
+```json
+{"name": "write_file", "arguments": {"path": "orders.py"}}  // Missing "content"
+```
+
 ## Grading
 
 Your output is validated against:
 
-1. **Tool schema compliance** - All tool calls must have valid arguments
-2. **Sequence correctness** - Must read before writing, must test after changes
-3. **Completeness** - Must address the full task (read, fix, verify)
+1. **Tool schema compliance** — All tool calls must have valid arguments
+2. **Sequence correctness** — Must read before writing, must test after changes
+3. **Completeness** — Must address the full task (read, fix, verify)
 
 ## Key Constraints
 
-The grader checks these invariants:
+The grader checks these **invariants** (conditions that must always be true):
 
 - `read_file` must be called BEFORE `write_file` for the same path
 - `run_tests` should be called AFTER any `write_file` calls
 - You must read `orders.py` before modifying it
+
+These invariants are checked programmatically. They're not "suggestions" — they're enforced.
 
 ## Example Workflow
 
@@ -96,12 +161,29 @@ For a typical bug fix, the sequence might be:
 **Sequence matters in agentic workflows.** You can't fix what you haven't read.
 You can't verify without testing. Real-world agents fail when they:
 
-- Try to modify files they haven't read
-- Skip verification steps
-- Call tools in illogical order
-- Make changes without understanding context
+- Try to modify files they haven't read (blind changes)
+- Skip verification steps (undetected regressions)
+- Call tools in illogical order (wasted computation)
+- Make changes without understanding context (wrong fixes)
 
-Reliable agents follow disciplined workflows with proper sequencing.
+The pattern to internalize: **Read → Understand → Change → Verify**
+
+This applies far beyond code. Updating a database? Read current state, plan change, apply change, verify result. Calling external APIs? Check preconditions, make the call, validate response.
+
+**The meta-lesson**: Good agentic systems make these workflows explicit. They don't rely on the LLM "knowing" the right order. They encode constraints that are checked automatically.
+
+## Connections
+
+- **Prerequisite**: [tools_01](../tools_01/) introduces single tool calls
+- **Related**: [error_01](../error_01/) handles what happens when tools fail
+- **Advanced**: [workflows/workflow_tool_wiring_01](../../workflows/workflow_tool_wiring_01/) formalizes these patterns
+- **Production**: [production_eval_01](../../production/production_eval_01/) tests workflows systematically
+
+## Further Reading
+
+- [Anthropic: Agentic loops](https://docs.anthropic.com/en/docs/build-with-claude/agentic-loops) — Managing multi-step tool use
+- [Building effective agents](https://www.anthropic.com/research/building-effective-agents) — Workflow design principles
+- [Directed acyclic graphs (DAGs)](https://en.wikipedia.org/wiki/Directed_acyclic_graph) — The formal structure behind workflows
 
 ## Hints
 
@@ -109,3 +191,4 @@ If you're stuck:
 - Use `vibelings hint` for progressive hints
 - Think about what information you need before each step
 - Remember: read first, then modify, then verify
+- You know the file name already — don't search for it

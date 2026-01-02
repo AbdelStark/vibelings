@@ -15,6 +15,45 @@ Not all decisions can be automated. Reliable agentic systems must:
 
 Human-in-the-loop (HITL) is not a failure mode - it's a design pattern for safety.
 
+## The Concept: Confidence-Based Routing
+
+The key insight is that model confidence should drive the automation/human split:
+
+```
+                   Classification Result
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │   Confidence Check    │
+              └───────────────────────┘
+                    │         │
+         ≥ 0.95     │         │    < 0.80
+        ┌───────────┘         └───────────┐
+        ▼                                 ▼
+   ┌──────────┐                    ┌──────────────┐
+   │ Auto-Act │                    │ Human Queue  │
+   └──────────┘                    └──────────────┘
+                                         │
+                              ┌──────────┼──────────┐
+                              ▼          ▼          ▼
+                          Approved   Rejected   Timeout
+                              │          │          │
+                              ▼          ▼          ▼
+                          Publish    Remove      Hold
+```
+
+**The principle**: Humans are expensive and slow. Use them where their judgment matters most — in the ambiguous cases where automation is unreliable.
+
+### The Three Timeout Strategies
+
+| Strategy | When to use | Trade-off |
+|----------|-------------|-----------|
+| Escalate | High-stakes decisions | Adds latency but maintains oversight |
+| Default-safe | Low-risk content | Faster but might over-filter |
+| Default-permissive | Time-sensitive, low-risk | Faster but might miss issues |
+
+Choose based on the cost of false positives vs false negatives in your domain.
+
 ## The Task
 
 Design a content moderation workflow that:
@@ -102,6 +141,30 @@ Your output is validated against:
 3. **Approval gate** - At least one gate with proper outcome handling
 4. **Timeout handling** - Defines escalation and default actions
 
+## Common Mistakes
+
+**1. Binary confidence thresholds**
+```json
+{"threshold": 0.5}  // Wrong: too coarse, everything is either auto or human
+```
+Use multiple thresholds to create zones: auto-approve, auto-reject, human-review.
+
+**2. Insufficient context for human reviewers**
+```json
+{"context_fields": ["content_id"]}  // Wrong: reviewer has to look up everything
+{"context_fields": ["content_id", "content_text", "classification", "confidence", "similar_cases"]}  // Better
+```
+Every click costs reviewer time. Put information at their fingertips.
+
+**3. No timeout handling**
+What happens when the human queue backs up? Without timeout handling, items sit forever and users wait indefinitely.
+
+**4. Treating all human decisions equally**
+Some decisions are routine, others are edge cases that should influence your model. Track and categorize human decisions for feedback loops.
+
+**5. No way to override automation**
+Even high-confidence automation should have a path to human review for appeals or audits.
+
 ## Key Lesson
 
 **Human-in-the-loop is a reliability pattern, not a crutch.**
@@ -114,6 +177,18 @@ Well-designed HITL workflows:
 
 The goal is not to remove humans, but to use their time wisely on cases
 that genuinely require human judgment.
+
+## Connections
+
+- **Prerequisite**: [workflow_tool_wiring_01](../workflow_tool_wiring_01/) — pipeline structure
+- **Related**: [production/production_eval_01](../../production/production_eval_01/) — use human decisions to build eval sets
+- **Related**: [fundamentals/guardrails_01](../../fundamentals/guardrails_01/) — confidence thresholds are a form of guardrail
+
+## Further Reading
+
+- [Anthropic: Human feedback](https://www.anthropic.com/research/rlhf) — How human feedback improves models
+- [Apple: Human Interface Guidelines for ML](https://developer.apple.com/design/human-interface-guidelines/machine-learning) — Designing for human-AI interaction
+- [Google PAIR: Human-AI Interaction](https://pair.withgoogle.com/) — Research on human-AI collaboration
 
 ## Hints
 
