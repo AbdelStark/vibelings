@@ -8,8 +8,11 @@ use crate::{Error, Result};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::Deserialize;
+use std::time::Duration;
 
 const OPENAI_API_URL: &str = "https://api.openai.com/v1/chat/completions";
+/// Default timeout for HTTP requests (2 minutes).
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// OpenAI direct provider.
 pub struct OpenAIProvider {
@@ -46,6 +49,8 @@ impl OpenAIProvider {
 
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| Error::Provider(ProviderError::HttpError(e.to_string())))?;
 
@@ -69,6 +74,8 @@ impl OpenAIProvider {
     pub fn new(api_key: String, model: String) -> Result<Self> {
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| Error::Provider(ProviderError::HttpError(e.to_string())))?;
 

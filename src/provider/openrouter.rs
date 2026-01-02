@@ -8,8 +8,11 @@ use crate::{Error, Result};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 const OPENROUTER_API_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
+/// Default timeout for HTTP requests (2 minutes).
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// OpenRouter provider.
 pub struct OpenRouterProvider {
@@ -55,6 +58,8 @@ impl OpenRouterProvider {
 
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| Error::Provider(ProviderError::HttpError(e.to_string())))?;
 
@@ -71,6 +76,8 @@ impl OpenRouterProvider {
     pub fn new(api_key: String, model: String) -> Result<Self> {
         let client = Client::builder()
             .user_agent(format!("vibelings/{}", crate::VERSION))
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| Error::Provider(ProviderError::HttpError(e.to_string())))?;
 

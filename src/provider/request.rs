@@ -6,9 +6,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum MessageRole {
+    /// System message providing context and instructions.
     System,
+    /// User message with input or query.
     User,
+    /// Assistant message with response.
     Assistant,
+    /// Tool result message.
     Tool,
 }
 
@@ -16,11 +20,13 @@ pub enum MessageRole {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MessageContent {
-    /// Plain text content
+    /// Plain text content.
     Text(String),
-    /// Tool call result
+    /// Tool call result.
     ToolResult {
+        /// ID of the tool call this is a result for.
         tool_call_id: String,
+        /// The result content.
         content: String,
     },
 }
@@ -40,12 +46,17 @@ impl From<&str> for MessageContent {
 /// A message in the conversation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
+    /// Role of the message sender.
     pub role: MessageRole,
+    /// Content of the message.
     pub content: MessageContent,
+    /// Optional name for the message sender.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    /// Tool calls made by the assistant.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCallRequest>>,
+    /// ID of the tool call this message responds to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
 }
@@ -99,16 +110,21 @@ impl Message {
 /// A tool call request from the model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCallRequest {
+    /// Unique identifier for this tool call.
     pub id: String,
+    /// Type of the call (typically "function").
     #[serde(rename = "type")]
     pub call_type: String,
+    /// The function being called.
     pub function: FunctionCall,
 }
 
 /// A function call (tool name and arguments).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCall {
+    /// Name of the function to call.
     pub name: String,
+    /// JSON-encoded arguments to pass.
     pub arguments: String,
 }
 
@@ -116,28 +132,36 @@ pub struct FunctionCall {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(untagged)]
 pub enum ToolChoice {
-    /// Let the model decide
+    /// Let the model decide.
     #[default]
     Auto,
-    /// Never use tools
+    /// Never use tools.
     None,
-    /// Force a specific tool
-    Specific { name: String },
+    /// Force a specific tool.
+    Specific {
+        /// Name of the tool to use.
+        name: String,
+    },
 }
 
 /// Tool definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {
+    /// Type of the tool (typically "function").
     #[serde(rename = "type")]
     pub tool_type: String,
+    /// Function definition for this tool.
     pub function: FunctionDefinition,
 }
 
 /// Function definition for a tool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionDefinition {
+    /// Name of the function.
     pub name: String,
+    /// Description of what the function does.
     pub description: String,
+    /// JSON Schema defining the function parameters.
     pub parameters: serde_json::Value,
 }
 

@@ -36,11 +36,12 @@ pub struct Trace {
     /// Whether the exercise passed
     pub passed: bool,
 
-    /// Token usage
+    /// Input token count.
     pub tokens_in: u32,
+    /// Output token count.
     pub tokens_out: u32,
 
-    /// Estimated cost in USD
+    /// Estimated cost in USD.
     pub cost_usd: f64,
 }
 
