@@ -73,9 +73,14 @@ pub mod icons {
     // Progress indicators
     pub const ARROW_RIGHT: &str = "→";
     pub const ARROW_DOWN: &str = "↓";
+    pub const ARROW_UP: &str = "↑";
     pub const BULLET: &str = "•";
     pub const STAR: &str = "★";
     pub const STAR_EMPTY: &str = "☆";
+    pub const DIAMOND: &str = "◆";
+    pub const DIAMOND_EMPTY: &str = "◇";
+    pub const PLAY: &str = "▶";
+    pub const PAUSE: &str = "⏸";
 
     // Status symbols (matching ExerciseStatus)
     pub const PENDING: &str = "○";
@@ -91,6 +96,7 @@ pub mod icons {
     pub const SECTION_END: &str = "└";
     pub const VERTICAL: &str = "│";
     pub const HORIZONTAL: &str = "─";
+    pub const THICK_HORIZONTAL: &str = "━";
 
     // Decorative
     pub const SPARKLE: &str = "✨";
@@ -98,6 +104,7 @@ pub mod icons {
     pub const ROCKET: &str = "🚀";
     pub const TARGET: &str = "🎯";
     pub const TROPHY: &str = "🏆";
+    pub const MEDAL: &str = "🥇";
     pub const LIGHTBULB: &str = "💡";
     pub const BOOK: &str = "📚";
     pub const GEAR: &str = "⚙";
@@ -105,10 +112,22 @@ pub mod icons {
     pub const HEART: &str = "❤";
     pub const WAVE: &str = "👋";
     pub const PARTY: &str = "🎉";
+    pub const CONFETTI: &str = "🎊";
     pub const DOLLAR: &str = "💰";
     pub const STETHOSCOPE: &str = "🩺";
     pub const REFRESH: &str = "🔄";
     pub const CLOCK: &str = "⏱";
+    pub const STOPWATCH: &str = "⏱";
+    pub const ZAP: &str = "⚡";
+    pub const BRAIN: &str = "🧠";
+    pub const CHECKERED_FLAG: &str = "🏁";
+    pub const MUSCLE: &str = "💪";
+    pub const EYES: &str = "👀";
+    pub const WRENCH: &str = "🔧";
+    pub const KEY: &str = "🔑";
+    pub const LOCK: &str = "🔒";
+    pub const UNLOCK: &str = "🔓";
+    pub const CLIPBOARD: &str = "📋";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -264,32 +283,35 @@ pub fn create_minimal_progress(len: u64) -> ProgressBar {
 pub fn print_header() {
     println!();
     println!(
-        "{}",
-        style("  ╭───────────────────────────────────╮").cyan()
+        "  {}",
+        style("╭─────────────────────────────────────────╮").cyan()
     );
     println!(
-        "{}",
-        style("  │                                   │").cyan()
-    );
-    println!(
-        "  {}  {}  {}",
+        "  {}                                         {}",
         style("│").cyan(),
-        style("🎯  V I B E L I N G S").cyan().bold(),
-        style("       │").cyan()
+        style("│").cyan()
     );
     println!(
-        "  {}     {}  {}",
+        "  {}   {}  {}                   {}",
         style("│").cyan(),
-        style("Learn Agentic AI").dim(),
-        style("      │").cyan()
+        icons::TARGET,
+        style("V I B E L I N G S").cyan().bold(),
+        style("│").cyan()
     );
     println!(
-        "{}",
-        style("  │                                   │").cyan()
+        "  {}      {}           {}",
+        style("│").cyan(),
+        style("Learn to Build Agentic AI").dim(),
+        style("│").cyan()
     );
     println!(
-        "{}",
-        style("  ╰───────────────────────────────────╯").cyan()
+        "  {}                                         {}",
+        style("│").cyan(),
+        style("│").cyan()
+    );
+    println!(
+        "  {}",
+        style("╰─────────────────────────────────────────╯").cyan()
     );
     println!();
 }
@@ -308,9 +330,9 @@ pub fn print_watch_header() {
         "  {} {}  {}",
         icons::TARGET,
         style("VIBELINGS").cyan().bold(),
-        style("Watch Mode").dim()
+        style("• Watch Mode").dim()
     );
-    divider(50);
+    println!("  {}", style("━".repeat(48)).cyan().dim());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -449,17 +471,7 @@ pub fn print_exercise_card(
 /// Display keyboard shortcut hints in watch mode
 pub fn print_key_hints() {
     println!();
-    println!(
-        "  {} {}  {} {}  {} {}  {} {}",
-        style("[h]").cyan(),
-        style("hint").dim(),
-        style("[n]").cyan(),
-        style("next").dim(),
-        style("[l]").cyan(),
-        style("list").dim(),
-        style("[q]").cyan(),
-        style("quit").dim(),
-    );
+    print_key_bar(&[("h", "hint"), ("n", "next"), ("l", "list"), ("q", "quit")]);
 }
 
 /// Display a single key hint
@@ -469,6 +481,42 @@ pub fn key_hint(key: &str, description: &str) -> String {
         style(format!("[{}]", key)).cyan(),
         style(description).dim()
     )
+}
+
+/// Display a styled key bar with multiple options
+pub fn print_key_bar(keys: &[(&str, &str)]) {
+    let keys_str: Vec<String> = keys
+        .iter()
+        .map(|(k, d)| format!("{} {}", style(format!("[{}]", k)).cyan(), style(*d).dim()))
+        .collect();
+    println!("  {}", keys_str.join("  "));
+}
+
+/// Display a footer with key hints in a box
+pub fn print_key_footer(keys: &[(&str, &str)]) {
+    let keys_str: Vec<String> = keys
+        .iter()
+        .map(|(k, d)| {
+            format!(
+                "{}{}",
+                style(*k).cyan().bold(),
+                style(format!(":{}", d)).dim()
+            )
+        })
+        .collect();
+    let content = keys_str.join(" │ ");
+    println!();
+    println!("  {} {} {}", style("╶").dim(), content, style("╴").dim());
+}
+
+/// Display a status line with current mode and info
+pub fn print_status_line(mode: &str, info: &str) {
+    println!(
+        "  {} {}  {}",
+        style("●").cyan(),
+        style(mode).cyan().bold(),
+        style(info).dim()
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -518,47 +566,121 @@ pub fn celebrate_pass() {
         icons::SPARKLE,
         style("PASSED!").green().bold()
     );
+    println!("  {}", style("━━━━━━━━━━━━━━━━━━━━━").green().dim());
+}
+
+/// Display a compact success message
+pub fn print_pass_compact() {
+    println!(
+        "  {} {}",
+        style(icons::CHECK).green().bold(),
+        style("PASSED").green().bold()
+    );
+}
+
+/// Display run statistics in a clean format
+pub fn print_run_stats(duration_secs: f64, cost_usd: f64, tokens_in: u32, tokens_out: u32) {
+    let duration_display = if duration_secs < 1.0 {
+        format!("{:.0}ms", duration_secs * 1000.0)
+    } else if duration_secs < 60.0 {
+        format!("{:.1}s", duration_secs)
+    } else {
+        let mins = (duration_secs / 60.0).floor();
+        let secs = duration_secs % 60.0;
+        format!("{:.0}m {:.0}s", mins, secs)
+    };
+
+    let cost_display = if cost_usd < 0.0001 {
+        "< $0.0001".to_string()
+    } else if cost_usd < 0.01 {
+        format!("${:.4}", cost_usd)
+    } else {
+        format!("${:.3}", cost_usd)
+    };
+
+    println!(
+        "     {} {}   {} {}",
+        style(icons::STOPWATCH).dim(),
+        style(&duration_display).white(),
+        style(icons::DOLLAR).dim(),
+        style(&cost_display).white(),
+    );
+    println!(
+        "     {} {} {} / {} {}",
+        style(icons::ARROW_RIGHT).dim(),
+        style("Tokens:").dim(),
+        style(format_number(tokens_in)).cyan(),
+        style(format_number(tokens_out)).cyan(),
+        style("(in/out)").dim(),
+    );
+}
+
+/// Format a number with K/M suffixes for readability
+fn format_number(n: u32) -> String {
+    if n >= 1_000_000 {
+        format!("{:.1}M", n as f64 / 1_000_000.0)
+    } else if n >= 10_000 {
+        format!("{:.1}K", n as f64 / 1_000.0)
+    } else if n >= 1_000 {
+        format!("{:.2}K", n as f64 / 1_000.0)
+    } else {
+        n.to_string()
+    }
 }
 
 /// Display big celebration for completing all exercises
 pub fn celebrate_completion() {
     println!();
     println!(
-        "{}",
-        style("  ╭───────────────────────────────────────╮").green()
+        "  {}",
+        style("╔═══════════════════════════════════════════════╗").green()
     );
     println!(
-        "{}",
-        style("  │                                       │").green()
+        "  {}                                               {}",
+        style("║").green(),
+        style("║").green()
     );
     println!(
-        "  {}    {}{}{}  {}   {}",
-        style("│").green(),
+        "  {}     {}{}{}{}{}  {}    {}",
+        style("║").green(),
+        icons::SPARKLE,
         icons::TROPHY,
         icons::PARTY,
         icons::TROPHY,
+        icons::SPARKLE,
         style("CONGRATULATIONS!").green().bold(),
-        style("│").green()
+        style("║").green()
     );
     println!(
-        "  {}                                       {}",
-        style("│").green(),
-        style("│").green()
+        "  {}                                               {}",
+        style("║").green(),
+        style("║").green()
     );
     println!(
-        "  {}    {}                  {}",
-        style("│").green(),
-        style("All exercises completed!").white().bold(),
-        style("│").green()
+        "  {}       {}              {}",
+        style("║").green(),
+        style("You've completed all exercises!").white().bold(),
+        style("║").green()
     );
     println!(
-        "  {}                                       {}",
-        style("│").green(),
-        style("│").green()
+        "  {}                                               {}",
+        style("║").green(),
+        style("║").green()
     );
     println!(
-        "{}",
-        style("  ╰───────────────────────────────────────╯").green()
+        "  {}     {}                   {}",
+        style("║").green(),
+        style("You are now an Agentic AI Engineer!").cyan(),
+        style("║").green()
+    );
+    println!(
+        "  {}                                               {}",
+        style("║").green(),
+        style("║").green()
+    );
+    println!(
+        "  {}",
+        style("╚═══════════════════════════════════════════════╝").green()
     );
     println!();
 }
@@ -617,22 +739,61 @@ pub fn print_progress_bar(completed: usize, total: usize) {
     let filled = (bar_width * completed) / total.max(1);
     let empty = bar_width - filled;
 
-    let filled_str: String = "━".repeat(filled);
-    let empty_str: String = "─".repeat(empty);
+    // Choose color based on progress
+    let (bar_color, icon) = if percentage >= 100 {
+        ("green", icons::TROPHY)
+    } else if percentage >= 75 {
+        ("cyan", icons::STAR)
+    } else if percentage >= 50 {
+        ("cyan", icons::DIAMOND)
+    } else if percentage >= 25 {
+        ("yellow", icons::ARROW_RIGHT)
+    } else {
+        ("yellow", icons::BULLET)
+    };
+
+    let filled_str: String = "█".repeat(filled);
+    let empty_str: String = "░".repeat(empty);
 
     println!();
     println!(
-        "  {} Progress: {}/{} ({}%)",
-        icons::STAR,
+        "  {} {} {}/{} {}",
+        icon,
+        style("Progress:").white().bold(),
         style(completed).green().bold(),
-        style(total).white(),
-        style(percentage).cyan()
+        style(total).dim(),
+        style(format!("({}%)", percentage)).cyan()
     );
-    println!(
-        "  [{}{}]",
-        style(filled_str).green(),
-        style(empty_str).dim()
-    );
+
+    let styled_bar = match bar_color {
+        "green" => format!("[{}{}]", style(filled_str).green(), style(empty_str).dim()),
+        "cyan" => format!("[{}{}]", style(filled_str).cyan(), style(empty_str).dim()),
+        _ => format!("[{}{}]", style(filled_str).yellow(), style(empty_str).dim()),
+    };
+    println!("  {}", styled_bar);
+}
+
+/// Display a compact inline progress indicator
+pub fn inline_progress(completed: usize, total: usize) -> String {
+    let percentage = if total > 0 {
+        (completed as f64 / total as f64 * 100.0) as usize
+    } else {
+        0
+    };
+
+    let bar_width = 10;
+    let filled = (bar_width * completed) / total.max(1);
+    let empty = bar_width - filled;
+
+    let filled_str: String = "█".repeat(filled);
+    let empty_str: String = "░".repeat(empty);
+
+    format!(
+        "{}{} {}%",
+        style(filled_str).cyan(),
+        style(empty_str).dim(),
+        percentage
+    )
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

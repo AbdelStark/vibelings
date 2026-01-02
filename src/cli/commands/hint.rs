@@ -52,14 +52,24 @@ pub async fn run(exercise: Option<&str>, level: u8) -> Result<()> {
         let stars: String = (0..=i)
             .map(|_| format!("{}", style(icons::STAR).yellow()))
             .collect();
+        let empty_stars: String = ((i + 1)..total_hints)
+            .map(|_| format!("{}", style(icons::STAR_EMPTY).dim()))
+            .collect();
 
-        // Hint box
+        // Hint box with nice formatting
         println!(
-            "  {} {} {}",
+            "  {}{} {}",
             stars,
-            style(format!("Hint {}:", i + 1)).yellow().bold(),
-            hint
+            empty_stars,
+            style(format!("Hint {}", i + 1)).yellow().bold(),
         );
+        println!();
+
+        // Wrap hint text nicely
+        let wrapped = ui::wrap_text(hint, 55);
+        for line in wrapped {
+            println!("     {}", style(&line).white());
+        }
         println!();
     }
 

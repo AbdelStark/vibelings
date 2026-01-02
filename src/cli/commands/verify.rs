@@ -184,21 +184,33 @@ pub async fn run(exercise: Option<&str>, json_output: bool) -> Result<()> {
 
     if failed_count == 0 {
         println!(
-            "  {} {}",
+            "  {}{}{}  {}",
+            icons::SPARKLE,
             icons::TROPHY,
+            icons::SPARKLE,
             style(format!("All {} exercises passed!", passed_count))
                 .green()
                 .bold()
         );
+        println!(
+            "  {}",
+            style("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").green().dim()
+        );
 
         // Full progress bar
-        let bar: String = "━".repeat(30);
+        let bar: String = "█".repeat(30);
         println!();
         println!(
             "     [{}] {}/{}",
             style(bar).green(),
             style(passed_count).green().bold(),
-            style(total).white()
+            style(total).dim()
+        );
+        println!();
+        println!(
+            "  {} {}",
+            icons::CHECKERED_FLAG,
+            style("Your exercises are verified and ready!").cyan()
         );
     } else {
         println!(
@@ -217,16 +229,22 @@ pub async fn run(exercise: Option<&str>, json_output: bool) -> Result<()> {
         println!();
         println!(
             "     [{}{}] {}/{}",
-            style("━".repeat(filled)).green(),
-            style("─".repeat(empty)).red(),
+            style("█".repeat(filled)).green(),
+            style("░".repeat(empty)).red(),
             style(passed_count).yellow().bold(),
-            style(total).white()
+            style(total).dim()
         );
 
         println!();
         println!(
-            "     {} Re-run the failing exercises to fix them.",
-            icons::INFO
+            "  {} {}",
+            icons::LIGHTBULB,
+            style("Re-run the failing exercises to fix them").dim()
+        );
+        println!(
+            "     {} {}",
+            style("Run").dim(),
+            style("vibelings run <exercise>").cyan()
         );
     }
 

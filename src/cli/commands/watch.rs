@@ -202,35 +202,42 @@ async fn run_exercise_with_feedback(
             if result.passed {
                 ui::celebrate_pass();
                 println!();
-                println!(
-                    "     {} {:.1}s  {} ${:.4}",
-                    style("Time:").dim(),
+                ui::print_run_stats(
                     result.duration_secs,
-                    style("Cost:").dim(),
-                    result.cost_usd
+                    result.cost_usd,
+                    result.tokens_in,
+                    result.tokens_out,
                 );
                 println!();
                 println!(
                     "  {} Press {} to continue to the next exercise",
-                    icons::ARROW_RIGHT,
+                    style(icons::ARROW_RIGHT).green(),
                     style("[n]").cyan().bold()
                 );
             } else {
                 println!();
                 println!(
                     "  {} {}",
-                    style(icons::CROSS).red(),
-                    style("Not quite right. Keep trying!").red()
+                    style(icons::CROSS).red().bold(),
+                    style("Not quite right yet!").red()
                 );
+
                 if let Some(ref error) = result.error_message {
                     println!();
-                    println!("     {}", style(error).dim());
+                    // Wrap long error messages nicely
+                    let wrapped = ui::wrap_text(error, 60);
+                    for line in wrapped {
+                        println!("     {}", style(&line).dim());
+                    }
                 }
+
                 println!();
                 println!(
-                    "  {} Press {} for a hint",
+                    "  {} {}  {} {}",
                     icons::LIGHTBULB,
-                    style("[h]").cyan()
+                    style("Need help?").yellow(),
+                    style("Press").dim(),
+                    style("[h]").cyan().bold()
                 );
             }
 
@@ -241,11 +248,26 @@ async fn run_exercise_with_feedback(
             spinner.finish_and_clear();
             println!();
             println!(
-                "  {} {}: {}",
-                style(icons::CROSS).red(),
-                style("Error").red().bold(),
-                e
+                "  {} {}",
+                style(icons::CROSS).red().bold(),
+                style("Exercise Error").red().bold()
             );
+            println!();
+
+            // Format error nicely
+            let error_str = e.to_string();
+            let wrapped = ui::wrap_text(&error_str, 55);
+            for line in wrapped {
+                println!("     {}", style(&line).dim());
+            }
+
+            println!();
+            println!(
+                "  {} {}",
+                icons::WRENCH,
+                style("Check the exercise setup and try again").dim()
+            );
+
             print_key_hints_extended();
             false
         }
@@ -303,19 +325,31 @@ fn display_exercise_info(
     // README excerpt if exists
     if exercise.readme_path.exists() {
         if let Ok(readme) = std::fs::read_to_string(&exercise.readme_path) {
-            let lines: Vec<&str> = readme.lines().take(8).collect();
-            if !lines.is_empty() {
+            // Skip the title line if it starts with #
+            let content_lines: Vec<&str> = readme
+                .lines()
+                .skip_while(|l| l.trim().is_empty() || l.starts_with('#'))
+                .take(6)
+                .collect();
+
+            if !content_lines.is_empty() {
                 println!();
-                println!("  {}", style("Instructions:").white().bold());
-                for line in &lines {
+                println!("  {} {}", icons::BOOK, style("Instructions").white().bold());
+                println!();
+                for line in &content_lines {
                     if !line.trim().is_empty() {
-                        println!("  {}", style(line).dim());
+                        // Truncate long lines
+                        let display_line = ui::truncate_str(line.trim(), 52);
+                        println!("     {}", style(&display_line).dim());
                     }
                 }
-                if readme.lines().count() > 8 {
+                let total_lines = readme.lines().count();
+                if total_lines > 8 {
+                    println!();
                     println!(
-                        "  {}",
-                        style("  ... (see README.md for full instructions)").dim()
+                        "     {} {}",
+                        style("...").dim(),
+                        style("(edit the starter files to begin)").dim().italic()
                     );
                 }
             }
@@ -329,18 +363,16 @@ fn display_exercise_info(
 pub fn print_key_hints_extended() {
     println!();
     println!(
-        "  {} {}  {} {}  {} {}  {} {}  {} {}",
-        style("[h]").cyan(),
-        style("hint").dim(),
-        style("[r]").cyan(),
-        style("retry").dim(),
-        style("[n]").cyan(),
-        style("next").dim(),
-        style("[l]").cyan(),
-        style("list").dim(),
-        style("[q]").cyan(),
-        style("quit").dim(),
+        "  {}",
+        style("─────────────────────────────────────────────────").dim()
     );
+    ui::print_key_bar(&[
+        ("h", "hint"),
+        ("r", "retry"),
+        ("n", "next"),
+        ("l", "list"),
+        ("q", "quit"),
+    ]);
 }
 
 fn handle_hint(runner: &ExerciseRunner, exercise_id: &str) -> Result<()> {
