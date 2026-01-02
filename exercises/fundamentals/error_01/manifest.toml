@@ -1,0 +1,22 @@
+[exercise]
+id = "error_01"
+title = "Handling Tool Failures"
+track = "fundamentals"
+prerequisites = ["tools_02"]
+description = "Learn to handle tool failures gracefully with retries and fallbacks"
+difficulty = 3
+
+[requirements]
+tool_calling = true
+json_mode = true
+min_context_window = 4096
+
+[run]
+max_tool_calls = 10
+timeout_seconds = 30
+runs = 1
+
+[grader]
+type = "sandbox"
+schema_path = "tools_schema.json"
+invariants = ["check_error_handling.sh"]

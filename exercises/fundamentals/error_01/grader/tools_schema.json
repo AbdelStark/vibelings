@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "User data aggregation tool definitions",
+  "tools": [
+    {
+      "name": "get_user_profile",
+      "description": "Get basic user profile data",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "The user ID"
+          }
+        },
+        "required": ["user_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_user_preferences",
+      "description": "Get user preferences and settings",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "The user ID"
+          }
+        },
+        "required": ["user_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_recent_activity",
+      "description": "Get user's recent activity feed",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "The user ID"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Max items to return"
+          }
+        },
+        "required": ["user_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

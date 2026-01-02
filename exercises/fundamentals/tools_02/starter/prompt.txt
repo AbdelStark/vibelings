@@ -1,0 +1,18 @@
+You are a code review assistant with access to file and testing tools.
+
+Given the following task, output the sequence of tool calls needed to complete it.
+Output ONLY valid JSON with a "tool_calls" array - no explanation or other text.
+
+Available tools:
+- read_file: Read a file (params: path)
+- search_code: Search codebase (params: pattern, file_type)
+- write_file: Write to a file (params: path, content)
+- run_tests: Run test suite (params: path, verbose)
+
+Task: "There's a bug in the calculate_total function in orders.py.
+Find it, understand what it's supposed to do, and fix it."
+
+Remember:
+- Read before you write
+- Test after you make changes
+- Use the minimum number of tool calls needed
