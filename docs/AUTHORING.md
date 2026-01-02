@@ -18,7 +18,7 @@ This guide explains how to create new exercises for vibelings. Exercises are the
 
 ```
 exercises/
-└── <track>/                    # Track name (fundamentals, mcp, workflows, production)
+└── <track>/                    # Track name (fundamentals, mcp, workflows, production, context)
     └── <exercise_id>/          # Exercise ID (e.g., json_01, server_01)
         ├── manifest.toml       # Exercise configuration (required)
         ├── README.md           # Exercise description (required)
@@ -40,6 +40,7 @@ exercises/
 | MCP in Practice | `mcp` | Model Context Protocol: servers, clients, resources |
 | Workflow Orchestration | `workflows` | Integration with workflow tools |
 | Production Engineering | `production` | Reliability at scale: evals, security, cost management |
+| Context Engineering | `context` | Context management: system prompts, budgets, compaction, token efficiency |
 
 ## manifest.toml
 
@@ -51,7 +52,7 @@ The manifest defines exercise metadata and grading configuration.
 [exercise]
 id = "json_01"                          # Unique ID (snake_case)
 title = "Basic JSON Output"             # Human-readable title
-track = "fundamentals"                  # Track: fundamentals, mcp, workflows, production
+track = "fundamentals"                  # Track: fundamentals, mcp, workflows, production, context
 prerequisites = []                      # List of exercise IDs that must be completed first
 description = "Learn JSON schema validation"  # Short description
 difficulty = 1                          # 1-5 scale

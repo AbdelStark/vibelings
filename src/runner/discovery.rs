@@ -515,6 +515,101 @@ mod tests {
     }
 
     #[test]
+    fn test_run_result_with_values() {
+        let result = RunResult {
+            passed: true,
+            error_message: None,
+            duration_secs: 1.5,
+            cost_usd: 0.002,
+            tool_calls: 3,
+            tokens_in: 100,
+            tokens_out: 50,
+            grading_details: Some("All checks passed".to_string()),
+            trace_id: Some("trace-123".to_string()),
+        };
+        assert!(result.passed);
+        assert!(result.error_message.is_none());
+        assert_eq!(result.duration_secs, 1.5);
+        assert_eq!(result.cost_usd, 0.002);
+        assert_eq!(result.tool_calls, 3);
+        assert_eq!(result.tokens_in, 100);
+        assert_eq!(result.tokens_out, 50);
+        assert_eq!(result.grading_details.unwrap(), "All checks passed");
+        assert_eq!(result.trace_id.unwrap(), "trace-123");
+    }
+
+    #[test]
+    fn test_run_result_failed_with_error() {
+        let result = RunResult {
+            passed: false,
+            error_message: Some("Schema validation failed: missing 'name' field".to_string()),
+            duration_secs: 0.8,
+            cost_usd: 0.001,
+            tool_calls: 0,
+            tokens_in: 50,
+            tokens_out: 25,
+            grading_details: Some("Failed schema validation".to_string()),
+            trace_id: Some("trace-456".to_string()),
+        };
+        assert!(!result.passed);
+        assert!(result.error_message.is_some());
+        assert!(result
+            .error_message
+            .unwrap()
+            .contains("Schema validation failed"));
+    }
+
+    #[test]
+    fn test_run_result_multi_run_aggregate() {
+        // Test a multi-run result that aggregates multiple runs
+        let result = RunResult {
+            passed: true,
+            error_message: None,
+            duration_secs: 5.2,
+            cost_usd: 0.015,
+            tool_calls: 9,
+            tokens_in: 300,
+            tokens_out: 150,
+            grading_details: Some("Multi-run reliability: 4/5 passed (required: 3)".to_string()),
+            trace_id: Some("trace-multi-1".to_string()),
+        };
+        assert!(result.passed);
+        assert!(result
+            .grading_details
+            .as_ref()
+            .unwrap()
+            .contains("Multi-run"));
+        assert!(result
+            .grading_details
+            .as_ref()
+            .unwrap()
+            .contains("4/5 passed"));
+    }
+
+    #[test]
+    fn test_run_result_reliability_threshold_not_met() {
+        let result = RunResult {
+            passed: false,
+            error_message: Some(
+                "Reliability threshold not met: 2/5 runs passed, need 4".to_string(),
+            ),
+            duration_secs: 4.8,
+            cost_usd: 0.012,
+            tool_calls: 6,
+            tokens_in: 250,
+            tokens_out: 125,
+            grading_details: Some("Multi-run reliability: 2/5 passed (required: 4)".to_string()),
+            trace_id: Some("trace-multi-2".to_string()),
+        };
+        assert!(!result.passed);
+        assert!(result
+            .error_message
+            .as_ref()
+            .unwrap()
+            .contains("Reliability threshold not met"));
+    }
+
+    #[test]
     fn test_exercise_id_format_validation() {
         // The get_exercise method expects format "track/id"
         // This tests the parsing logic by creating a runner and checking behavior
@@ -528,5 +623,146 @@ mod tests {
 
         // Empty parts should error
         assert!(runner.get_exercise("/empty").is_err());
+    }
+
+    #[test]
+    fn test_exercise_id_valid_format_nonexistent() {
+        let runner = ExerciseRunner::new().unwrap();
+
+        // Valid format but non-existent exercise
+        let result = runner.get_exercise("nonexistent/exercise");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_exercise_id_empty_track() {
+        let runner = ExerciseRunner::new().unwrap();
+
+        // Empty track name should error
+        let result = runner.get_exercise("/exercise");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_exercise_id_empty_id() {
+        let runner = ExerciseRunner::new().unwrap();
+
+        // Empty exercise id should error
+        let result = runner.get_exercise("track/");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_reset_nonexistent_exercise() {
+        let runner = ExerciseRunner::new().unwrap();
+
+        // Reset non-existent exercise should fail
+        let result = runner.reset_exercise("nonexistent/exercise");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_get_hints_nonexistent_exercise() {
+        let runner = ExerciseRunner::new().unwrap();
+
+        // Getting hints for non-existent exercise should fail
+        let result = runner.get_hints("nonexistent/exercise");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_run_result_serialization() {
+        let result = RunResult {
+            passed: true,
+            error_message: None,
+            duration_secs: 1.5,
+            cost_usd: 0.002,
+            tool_calls: 3,
+            tokens_in: 100,
+            tokens_out: 50,
+            grading_details: Some("Passed".to_string()),
+            trace_id: Some("trace-123".to_string()),
+        };
+
+        // Should serialize to JSON
+        let json = serde_json::to_string(&result).unwrap();
+        assert!(json.contains("\"passed\":true"));
+        assert!(json.contains("\"duration_secs\":1.5"));
+        assert!(json.contains("\"cost_usd\":0.002"));
+
+        // Should deserialize back
+        let deserialized: RunResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.passed, result.passed);
+        assert_eq!(deserialized.tokens_in, result.tokens_in);
+    }
+
+    #[test]
+    fn test_run_result_clone() {
+        let result = RunResult {
+            passed: true,
+            error_message: Some("Test error".to_string()),
+            duration_secs: 2.0,
+            cost_usd: 0.005,
+            tool_calls: 5,
+            tokens_in: 200,
+            tokens_out: 100,
+            grading_details: Some("Details".to_string()),
+            trace_id: Some("trace-clone".to_string()),
+        };
+
+        let cloned = result.clone();
+        assert_eq!(cloned.passed, result.passed);
+        assert_eq!(cloned.error_message, result.error_message);
+        assert_eq!(cloned.duration_secs, result.duration_secs);
+        assert_eq!(cloned.cost_usd, result.cost_usd);
+        assert_eq!(cloned.tool_calls, result.tool_calls);
+        assert_eq!(cloned.tokens_in, result.tokens_in);
+        assert_eq!(cloned.tokens_out, result.tokens_out);
+        assert_eq!(cloned.grading_details, result.grading_details);
+        assert_eq!(cloned.trace_id, result.trace_id);
+    }
+
+    #[test]
+    fn test_run_result_debug_format() {
+        let result = RunResult::default();
+        let debug_str = format!("{:?}", result);
+        assert!(debug_str.contains("RunResult"));
+        assert!(debug_str.contains("passed"));
+    }
+
+    #[test]
+    fn test_run_result_zero_values() {
+        let result = RunResult {
+            passed: false,
+            error_message: None,
+            duration_secs: 0.0,
+            cost_usd: 0.0,
+            tool_calls: 0,
+            tokens_in: 0,
+            tokens_out: 0,
+            grading_details: None,
+            trace_id: None,
+        };
+        assert!(!result.passed);
+        assert_eq!(result.duration_secs, 0.0);
+        assert_eq!(result.cost_usd, 0.0);
+    }
+
+    #[test]
+    fn test_run_result_high_values() {
+        let result = RunResult {
+            passed: true,
+            error_message: None,
+            duration_secs: 3600.0, // 1 hour
+            cost_usd: 100.0,
+            tool_calls: 1000,
+            tokens_in: 1_000_000,
+            tokens_out: 500_000,
+            grading_details: Some("Long running test".to_string()),
+            trace_id: Some("trace-high".to_string()),
+        };
+        assert!(result.passed);
+        assert_eq!(result.duration_secs, 3600.0);
+        assert_eq!(result.tokens_in, 1_000_000);
     }
 }

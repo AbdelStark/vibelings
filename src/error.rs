@@ -181,3 +181,207 @@ pub enum TraceError {
 
 /// Result type alias using our Error type.
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_config_error_not_found() {
+        let err = ConfigError::NotFound(PathBuf::from("/etc/vibelings/config.toml"));
+        let msg = format!("{}", err);
+        assert!(msg.contains("not found"));
+        assert!(msg.contains("vibelings init"));
+    }
+
+    #[test]
+    fn test_config_error_invalid() {
+        let err = ConfigError::Invalid("temperature must be between 0 and 2".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Invalid"));
+        assert!(msg.contains("temperature"));
+    }
+
+    #[test]
+    fn test_config_error_env_var() {
+        let err = ConfigError::EnvVarNotSet("OPENROUTER_API_KEY".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("OPENROUTER_API_KEY"));
+        assert!(msg.contains("export"));
+    }
+
+    #[test]
+    fn test_exercise_error_not_found() {
+        let err = ExerciseError::NotFound("fundamentals/json_99".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("json_99"));
+        assert!(msg.contains("vibelings list"));
+    }
+
+    #[test]
+    fn test_exercise_error_invalid_manifest() {
+        let err = ExerciseError::InvalidManifest {
+            path: PathBuf::from("exercises/test/manifest.toml"),
+            reason: "missing [grader] section".to_string(),
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("manifest"));
+        assert!(msg.contains("missing [grader] section"));
+    }
+
+    #[test]
+    fn test_exercise_error_prerequisites() {
+        let err = ExerciseError::PrerequisitesNotMet {
+            exercise: "tools_02".to_string(),
+            missing: vec!["tools_01".to_string()],
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("tools_02"));
+        assert!(msg.contains("tools_01"));
+    }
+
+    #[test]
+    fn test_provider_error_rate_limited() {
+        let err = ProviderError::RateLimited("Please wait 60 seconds".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Rate limited"));
+        assert!(msg.contains("Wait"));
+    }
+
+    #[test]
+    fn test_provider_error_response() {
+        let err = ProviderError::ResponseError {
+            status: 500,
+            message: "Internal server error".to_string(),
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("500"));
+        assert!(msg.contains("Internal server error"));
+    }
+
+    #[test]
+    fn test_provider_error_feature_not_supported() {
+        let err = ProviderError::FeatureNotSupported {
+            model: "gpt-3.5-turbo".to_string(),
+            feature: "tool calling".to_string(),
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("gpt-3.5-turbo"));
+        assert!(msg.contains("tool calling"));
+    }
+
+    #[test]
+    fn test_grading_error_schema() {
+        let err = GradingError::SchemaValidation("missing required field 'name'".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Schema validation"));
+        assert!(msg.contains("name"));
+    }
+
+    #[test]
+    fn test_grading_error_reliability() {
+        let err = GradingError::ReliabilityThresholdNotMet {
+            passed: 2,
+            total: 5,
+            required: 4,
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("2/5"));
+        assert!(msg.contains("need 4"));
+    }
+
+    #[test]
+    fn test_grading_error_not_implemented() {
+        let err = GradingError::NotImplemented("llm-judge".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("not implemented"));
+        assert!(msg.contains("llm-judge"));
+    }
+
+    #[test]
+    fn test_sandbox_error_timeout() {
+        let err = SandboxError::Timeout(30);
+        let msg = format!("{}", err);
+        assert!(msg.contains("30"));
+        assert!(msg.contains("timed out"));
+    }
+
+    #[test]
+    fn test_sandbox_error_command_not_allowed() {
+        let err = SandboxError::CommandNotAllowed("rm -rf".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("rm -rf"));
+        assert!(msg.contains("not allowed"));
+    }
+
+    #[test]
+    fn test_sandbox_error_max_tool_calls() {
+        let err = SandboxError::MaxToolCallsExceeded(10);
+        let msg = format!("{}", err);
+        assert!(msg.contains("10"));
+        assert!(msg.contains("exceeded"));
+    }
+
+    #[test]
+    fn test_trace_error_not_found() {
+        let err = TraceError::NotFound("trace-12345".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("trace-12345"));
+        assert!(msg.contains("not found"));
+    }
+
+    #[test]
+    fn test_error_conversion_from_config() {
+        let config_err = ConfigError::Invalid("test".to_string());
+        let err: Error = config_err.into();
+        let msg = format!("{}", err);
+        assert!(msg.contains("Configuration error"));
+    }
+
+    #[test]
+    fn test_error_conversion_from_exercise() {
+        let exercise_err = ExerciseError::NotFound("test".to_string());
+        let err: Error = exercise_err.into();
+        let msg = format!("{}", err);
+        assert!(msg.contains("Exercise error"));
+    }
+
+    #[test]
+    fn test_error_conversion_from_provider() {
+        let provider_err = ProviderError::InvalidResponse("bad json".to_string());
+        let err: Error = provider_err.into();
+        let msg = format!("{}", err);
+        assert!(msg.contains("Provider error"));
+    }
+
+    #[test]
+    fn test_error_conversion_from_grading() {
+        let grading_err = GradingError::SchemaValidation("test".to_string());
+        let err: Error = grading_err.into();
+        let msg = format!("{}", err);
+        assert!(msg.contains("Grading error"));
+    }
+
+    #[test]
+    fn test_error_conversion_from_sandbox() {
+        let sandbox_err = SandboxError::NetworkDenied;
+        let err: Error = sandbox_err.into();
+        let msg = format!("{}", err);
+        assert!(msg.contains("Sandbox error"));
+    }
+
+    #[test]
+    fn test_error_conversion_from_trace() {
+        let trace_err = TraceError::InvalidFormat("bad format".to_string());
+        let err: Error = trace_err.into();
+        let msg = format!("{}", err);
+        assert!(msg.contains("Trace error"));
+    }
+
+    #[test]
+    fn test_error_debug_format() {
+        let err = Error::Config(ConfigError::Invalid("test".to_string()));
+        let debug = format!("{:?}", err);
+        assert!(debug.contains("Config"));
+    }
+}
