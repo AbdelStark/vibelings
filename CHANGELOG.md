@@ -70,30 +70,30 @@ Initial release of vibelings - "Rustlings for agentic programming".
 - **Anthropic**: Native Claude API with tool calling support
 - **Local**: OpenAI-compatible endpoints (Ollama, vLLM, LM Studio)
 
-#### Exercise Tracks
+#### Exercise Tracks (15 exercises at v0.1.0 release)
 
 **Track 1: Agentic Fundamentals** (7 exercises)
-- `fundamentals/json_01` - Basic JSON schema compliance
-- `fundamentals/json_02` - Complex nested schemas
-- `fundamentals/tools_01` - Basic tool calling with schema validation
-- `fundamentals/tools_02` - Tool sequence validation
-- `fundamentals/error_01` - Handling tool failures
-- `fundamentals/guardrails_01` - Input/output validation
-- `fundamentals/observability_01` - Logging and cost awareness
+- `fundamentals/json_01` — Basic JSON schema compliance
+- `fundamentals/json_02` — Complex nested schemas
+- `fundamentals/tools_01` — Basic tool calling with schema validation
+- `fundamentals/tools_02` — Tool sequence validation
+- `fundamentals/error_01` — Handling tool failures
+- `fundamentals/guardrails_01` — Input/output validation
+- `fundamentals/observability_01` — Logging and cost awareness
 
 **Track 2: MCP in Practice** (2 exercises)
-- `mcp/server_01` - Define tools per MCP specification
-- `mcp/client_01` - Construct valid JSON-RPC tool call requests
+- `mcp/server_01` — Define tools per MCP specification
+- `mcp/client_01` — Construct valid JSON-RPC tool call requests
 
 **Track 3: Workflow Orchestration** (3 exercises)
-- `workflows/workflow_json_01` - n8n-style workflow JSON structure
-- `workflows/workflow_tool_wiring_01` - Tool wiring and data transformation
-- `workflows/workflow_human_loop_01` - Human-in-the-loop approval patterns
+- `workflows/workflow_json_01` — n8n-style workflow JSON structure
+- `workflows/workflow_tool_wiring_01` — Tool wiring and data transformation
+- `workflows/workflow_human_loop_01` — Human-in-the-loop approval patterns
 
 **Track 4: Production Engineering** (3 exercises)
-- `production/production_eval_01` - Evaluation harness design
-- `production/production_security_01` - Prompt injection defense patterns
-- `production/production_budget_01` - Cost/latency budget enforcement
+- `production/production_eval_01` — Evaluation harness design
+- `production/production_security_01` — Prompt injection defense patterns
+- `production/production_budget_01` — Cost/latency budget enforcement
 
 #### Security & Sandbox
 - Command allowlisting with configurable permissions
