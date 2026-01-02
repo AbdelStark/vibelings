@@ -324,17 +324,24 @@ impl Exercise {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashSet;
 
     #[test]
     fn test_track_display_name() {
         assert_eq!(Track::Fundamentals.display_name(), "Agentic Fundamentals");
         assert_eq!(Track::Mcp.display_name(), "MCP in Practice");
+        assert_eq!(Track::Workflows.display_name(), "Workflow Orchestration");
+        assert_eq!(Track::Production.display_name(), "Production Engineering");
+        assert_eq!(Track::Context.display_name(), "Context Engineering");
     }
 
     #[test]
     fn test_track_dir_name() {
         assert_eq!(Track::Fundamentals.dir_name(), "fundamentals");
+        assert_eq!(Track::Mcp.dir_name(), "mcp");
+        assert_eq!(Track::Workflows.dir_name(), "workflows");
         assert_eq!(Track::Production.dir_name(), "production");
+        assert_eq!(Track::Context.dir_name(), "context");
     }
 
     #[test]
@@ -343,13 +350,87 @@ mod tests {
             Track::from_dir_name("fundamentals"),
             Some(Track::Fundamentals)
         );
+        assert_eq!(Track::from_dir_name("mcp"), Some(Track::Mcp));
+        assert_eq!(Track::from_dir_name("workflows"), Some(Track::Workflows));
+        assert_eq!(Track::from_dir_name("production"), Some(Track::Production));
+        assert_eq!(Track::from_dir_name("context"), Some(Track::Context));
         assert_eq!(Track::from_dir_name("unknown"), None);
+        assert_eq!(Track::from_dir_name(""), None);
+    }
+
+    #[test]
+    fn test_track_display_format() {
+        let track = Track::Fundamentals;
+        assert_eq!(format!("{}", track), "Agentic Fundamentals");
     }
 
     #[test]
     fn test_status_symbol() {
-        assert_eq!(ExerciseStatus::Completed.symbol(), "✅");
         assert_eq!(ExerciseStatus::Pending.symbol(), "⏳");
+        assert_eq!(ExerciseStatus::InProgress.symbol(), "🔄");
+        assert_eq!(ExerciseStatus::Completed.symbol(), "✅");
+        assert_eq!(ExerciseStatus::Flaky.symbol(), "🟡");
+        assert_eq!(ExerciseStatus::NeedsReruns.symbol(), "🔁");
+        assert_eq!(ExerciseStatus::Experimental.symbol(), "🧪");
+    }
+
+    #[test]
+    fn test_status_display_format() {
+        assert_eq!(format!("{}", ExerciseStatus::Pending), "Pending");
+        assert_eq!(format!("{}", ExerciseStatus::InProgress), "In Progress");
+        assert_eq!(format!("{}", ExerciseStatus::Completed), "Completed");
+        assert_eq!(format!("{}", ExerciseStatus::Flaky), "Flaky");
+        assert_eq!(format!("{}", ExerciseStatus::NeedsReruns), "Needs Reruns");
+        assert_eq!(format!("{}", ExerciseStatus::Experimental), "Experimental");
+    }
+
+    #[test]
+    fn test_grader_type_display_format() {
+        assert_eq!(format!("{}", GraderType::Schema), "schema");
+        assert_eq!(format!("{}", GraderType::Invariants), "invariants");
+        assert_eq!(format!("{}", GraderType::Combined), "combined");
+        assert_eq!(format!("{}", GraderType::Sandbox), "sandbox");
+        assert_eq!(format!("{}", GraderType::Reliability), "reliability");
+        assert_eq!(format!("{}", GraderType::LlmJudge), "llm-judge");
+    }
+
+    #[test]
+    fn test_exercise_requirements_default() {
+        let requirements = ExerciseRequirements::default();
+        assert!(!requirements.tool_calling);
+        assert!(!requirements.json_mode);
+        // Note: Default::default() gives 0 for u32, but serde default gives 4096
+        assert_eq!(requirements.min_context_window, 0);
+        assert!(!requirements.network);
+    }
+
+    #[test]
+    fn test_exercise_requirements_serde_default() {
+        // When deserializing with requirements section but missing fields,
+        // min_context_window should use the serde default function (4096)
+        let toml_str = r#"
+[exercise]
+id = "test"
+title = "Test"
+track = "fundamentals"
+
+[requirements]
+# min_context_window omitted, should use default
+
+[grader]
+type = "schema"
+"#;
+        let manifest: ExerciseManifest = toml::from_str(toml_str).unwrap();
+        assert_eq!(manifest.requirements.min_context_window, 4096);
+    }
+
+    #[test]
+    fn test_exercise_run_config_default() {
+        let config = ExerciseRunConfig::default();
+        assert_eq!(config.max_tool_calls, 0);
+        assert_eq!(config.timeout_seconds, 30);
+        assert_eq!(config.runs, 1);
+        assert!(config.required_passes.is_none());
     }
 
     #[test]
@@ -374,5 +455,279 @@ schema_path = "grader/schema.json"
         assert_eq!(manifest.exercise.id, "json_01");
         assert_eq!(manifest.exercise.track, Track::Fundamentals);
         assert!(manifest.requirements.json_mode);
+    }
+
+    #[test]
+    fn test_manifest_with_prerequisites() {
+        let toml_str = r#"
+[exercise]
+id = "json_02"
+title = "Complex JSON"
+track = "fundamentals"
+prerequisites = ["json_01"]
+description = "Learn complex schemas"
+difficulty = 2
+
+[grader]
+type = "schema"
+schema_path = "schema.json"
+"#;
+        let manifest: ExerciseManifest = toml::from_str(toml_str).unwrap();
+        assert_eq!(manifest.exercise.prerequisites, vec!["json_01"]);
+        assert_eq!(
+            manifest.exercise.description,
+            Some("Learn complex schemas".to_string())
+        );
+        assert_eq!(manifest.exercise.difficulty, 2);
+    }
+
+    #[test]
+    fn test_manifest_with_multi_run() {
+        let toml_str = r#"
+[exercise]
+id = "reliability_01"
+title = "Reliability Test"
+track = "production"
+
+[run]
+runs = 5
+required_passes = 4
+
+[grader]
+type = "schema"
+schema_path = "schema.json"
+"#;
+        let manifest: ExerciseManifest = toml::from_str(toml_str).unwrap();
+        assert_eq!(manifest.run.runs, 5);
+        assert_eq!(manifest.run.required_passes, Some(4));
+    }
+
+    #[test]
+    fn test_manifest_with_invariants() {
+        let toml_str = r#"
+[exercise]
+id = "invariant_test"
+title = "Invariant Test"
+track = "fundamentals"
+
+[grader]
+type = "combined"
+schema_path = "schema.json"
+invariants = ["check1.sh", "check2.sh"]
+"#;
+        let manifest: ExerciseManifest = toml::from_str(toml_str).unwrap();
+        assert_eq!(manifest.grader.grader_type, GraderType::Combined);
+        assert_eq!(manifest.grader.invariants.len(), 2);
+    }
+
+    #[test]
+    fn test_exercise_full_id() {
+        let manifest = ExerciseManifest {
+            exercise: ExerciseMetadata {
+                id: "json_01".to_string(),
+                title: "Basic JSON".to_string(),
+                track: Track::Fundamentals,
+                prerequisites: vec![],
+                description: None,
+                difficulty: 1,
+            },
+            requirements: ExerciseRequirements::default(),
+            run: ExerciseRunConfig::default(),
+            grader: GraderConfig {
+                grader_type: GraderType::Schema,
+                schema_path: Some("schema.json".to_string()),
+                invariants: vec![],
+                rubric_path: None,
+            },
+        };
+
+        let exercise = Exercise {
+            manifest,
+            path: PathBuf::from("exercises/fundamentals/json_01"),
+            status: ExerciseStatus::Pending,
+            readme_path: PathBuf::from("exercises/fundamentals/json_01/README.md"),
+            starter_path: PathBuf::from("exercises/fundamentals/json_01/starter"),
+            grader_path: PathBuf::from("exercises/fundamentals/json_01/grader"),
+            fixtures_path: None,
+        };
+
+        assert_eq!(exercise.full_id(), "fundamentals/json_01");
+    }
+
+    #[test]
+    fn test_exercise_display_title() {
+        let manifest = ExerciseManifest {
+            exercise: ExerciseMetadata {
+                id: "server_01".to_string(),
+                title: "MCP Server Basics".to_string(),
+                track: Track::Mcp,
+                prerequisites: vec![],
+                description: None,
+                difficulty: 1,
+            },
+            requirements: ExerciseRequirements::default(),
+            run: ExerciseRunConfig::default(),
+            grader: GraderConfig {
+                grader_type: GraderType::Schema,
+                schema_path: Some("schema.json".to_string()),
+                invariants: vec![],
+                rubric_path: None,
+            },
+        };
+
+        let exercise = Exercise {
+            manifest,
+            path: PathBuf::from("exercises/mcp/server_01"),
+            status: ExerciseStatus::Pending,
+            readme_path: PathBuf::from("exercises/mcp/server_01/README.md"),
+            starter_path: PathBuf::from("exercises/mcp/server_01/starter"),
+            grader_path: PathBuf::from("exercises/mcp/server_01/grader"),
+            fixtures_path: None,
+        };
+
+        assert_eq!(
+            exercise.display_title(),
+            "[MCP in Practice] MCP Server Basics"
+        );
+    }
+
+    #[test]
+    fn test_exercise_prerequisites_met_no_prereqs() {
+        let manifest = ExerciseManifest {
+            exercise: ExerciseMetadata {
+                id: "json_01".to_string(),
+                title: "Basic".to_string(),
+                track: Track::Fundamentals,
+                prerequisites: vec![],
+                description: None,
+                difficulty: 1,
+            },
+            requirements: ExerciseRequirements::default(),
+            run: ExerciseRunConfig::default(),
+            grader: GraderConfig {
+                grader_type: GraderType::Schema,
+                schema_path: None,
+                invariants: vec![],
+                rubric_path: None,
+            },
+        };
+
+        let exercise = Exercise {
+            manifest,
+            path: PathBuf::from("exercises/fundamentals/json_01"),
+            status: ExerciseStatus::Pending,
+            readme_path: PathBuf::from("README.md"),
+            starter_path: PathBuf::from("starter"),
+            grader_path: PathBuf::from("grader"),
+            fixtures_path: None,
+        };
+
+        let completed: HashSet<String> = HashSet::new();
+        assert!(exercise.prerequisites_met(&completed));
+    }
+
+    #[test]
+    fn test_exercise_prerequisites_met_with_prereqs() {
+        let manifest = ExerciseManifest {
+            exercise: ExerciseMetadata {
+                id: "json_02".to_string(),
+                title: "Complex".to_string(),
+                track: Track::Fundamentals,
+                prerequisites: vec!["fundamentals/json_01".to_string()],
+                description: None,
+                difficulty: 2,
+            },
+            requirements: ExerciseRequirements::default(),
+            run: ExerciseRunConfig::default(),
+            grader: GraderConfig {
+                grader_type: GraderType::Schema,
+                schema_path: None,
+                invariants: vec![],
+                rubric_path: None,
+            },
+        };
+
+        let exercise = Exercise {
+            manifest,
+            path: PathBuf::from("exercises/fundamentals/json_02"),
+            status: ExerciseStatus::Pending,
+            readme_path: PathBuf::from("README.md"),
+            starter_path: PathBuf::from("starter"),
+            grader_path: PathBuf::from("grader"),
+            fixtures_path: None,
+        };
+
+        // Prerequisites not met
+        let empty: HashSet<String> = HashSet::new();
+        assert!(!exercise.prerequisites_met(&empty));
+
+        // Prerequisites met
+        let mut completed: HashSet<String> = HashSet::new();
+        completed.insert("fundamentals/json_01".to_string());
+        assert!(exercise.prerequisites_met(&completed));
+    }
+
+    #[test]
+    fn test_exercise_prerequisites_met_multiple_prereqs() {
+        let manifest = ExerciseManifest {
+            exercise: ExerciseMetadata {
+                id: "advanced".to_string(),
+                title: "Advanced".to_string(),
+                track: Track::Production,
+                prerequisites: vec![
+                    "fundamentals/json_01".to_string(),
+                    "fundamentals/tools_01".to_string(),
+                ],
+                description: None,
+                difficulty: 4,
+            },
+            requirements: ExerciseRequirements::default(),
+            run: ExerciseRunConfig::default(),
+            grader: GraderConfig {
+                grader_type: GraderType::Schema,
+                schema_path: None,
+                invariants: vec![],
+                rubric_path: None,
+            },
+        };
+
+        let exercise = Exercise {
+            manifest,
+            path: PathBuf::from("exercises/production/advanced"),
+            status: ExerciseStatus::Pending,
+            readme_path: PathBuf::from("README.md"),
+            starter_path: PathBuf::from("starter"),
+            grader_path: PathBuf::from("grader"),
+            fixtures_path: None,
+        };
+
+        // Only one prereq met
+        let mut partial: HashSet<String> = HashSet::new();
+        partial.insert("fundamentals/json_01".to_string());
+        assert!(!exercise.prerequisites_met(&partial));
+
+        // Both prereqs met
+        partial.insert("fundamentals/tools_01".to_string());
+        assert!(exercise.prerequisites_met(&partial));
+    }
+
+    #[test]
+    fn test_track_serialization() {
+        let track = Track::Context;
+        let json = serde_json::to_string(&track).unwrap();
+        assert_eq!(json, "\"context\"");
+
+        let deserialized: Track = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized, Track::Context);
+    }
+
+    #[test]
+    fn test_status_serialization() {
+        let status = ExerciseStatus::Flaky;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"flaky\"");
+
+        let deserialized: ExerciseStatus = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized, ExerciseStatus::Flaky);
     }
 }
