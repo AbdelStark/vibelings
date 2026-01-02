@@ -287,9 +287,9 @@ impl Grader {
             // Validate against tools schema if available
             if let Some(ref tools) = tools_schema {
                 if let Some(tools_array) = tools.get("tools").and_then(|t| t.as_array()) {
-                    let tool_def = tools_array.iter().find(|t| {
-                        t.get("name").and_then(|n| n.as_str()) == Some(&tool_name)
-                    });
+                    let tool_def = tools_array
+                        .iter()
+                        .find(|t| t.get("name").and_then(|n| n.as_str()) == Some(&tool_name));
 
                     match tool_def {
                         Some(def) => {
@@ -383,9 +383,15 @@ impl Grader {
         Ok(GradingResult {
             passed: all_passed,
             message: if all_passed {
-                format!("Sandbox validation passed: {}/{} checks", passed_count, total)
+                format!(
+                    "Sandbox validation passed: {}/{} checks",
+                    passed_count, total
+                )
             } else {
-                format!("Sandbox validation failed: {}/{} checks passed", passed_count, total)
+                format!(
+                    "Sandbox validation failed: {}/{} checks passed",
+                    passed_count, total
+                )
             },
             details,
             schema_errors,
@@ -542,7 +548,10 @@ mod tests {
 
         let result = grader.grade(&exercise, output).unwrap();
         assert!(!result.passed);
-        assert!(result.details.iter().any(|d| d.message.contains("missing 'name'")));
+        assert!(result
+            .details
+            .iter()
+            .any(|d| d.message.contains("missing 'name'")));
     }
 
     #[test]
@@ -559,7 +568,10 @@ mod tests {
 
         let result = grader.grade(&exercise, output).unwrap();
         assert!(!result.passed);
-        assert!(result.details.iter().any(|d| d.message.contains("missing 'arguments'")));
+        assert!(result
+            .details
+            .iter()
+            .any(|d| d.message.contains("missing 'arguments'")));
     }
 
     #[test]
@@ -633,7 +645,10 @@ mod tests {
         }"#;
         let result_unknown = grader.grade(&exercise, output_unknown).unwrap();
         assert!(!result_unknown.passed);
-        assert!(result_unknown.details.iter().any(|d| d.message.contains("Unknown tool")));
+        assert!(result_unknown
+            .details
+            .iter()
+            .any(|d| d.message.contains("Unknown tool")));
 
         // Invalid arguments (missing required)
         let output_missing = r#"{

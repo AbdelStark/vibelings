@@ -8,6 +8,7 @@ use std::fs;
 use tempfile::TempDir;
 
 /// Get a Command for the vibelings binary.
+#[allow(deprecated)]
 fn vibelings() -> Command {
     Command::cargo_bin("vibelings").unwrap()
 }
@@ -19,7 +20,9 @@ fn test_help_command() {
         .assert()
         .success()
         .stdout(predicate::str::contains("vibelings"))
-        .stdout(predicate::str::contains("Rustlings for agentic programming"));
+        .stdout(predicate::str::contains(
+            "Rustlings for agentic programming",
+        ));
 }
 
 #[test]
@@ -40,7 +43,9 @@ fn test_init_command() {
         .current_dir(temp_dir.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("Workspace initialized successfully"));
+        .stdout(predicate::str::contains(
+            "Workspace initialized successfully",
+        ));
 
     // Verify directories were created
     assert!(temp_dir.path().join("exercises").exists());
