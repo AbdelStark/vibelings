@@ -2537,3 +2537,273 @@ fn test_context_05_context_track() {
         "Exercise should be in context track"
     );
 }
+
+// =============================================================================
+// TOOLS_02 Tests - Multi-Tool Orchestration
+// =============================================================================
+
+#[test]
+fn test_tools_02_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_tools_02_unknown_tool() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "unknown_function", "arguments": {"x": 1}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected unknown tool to fail");
+}
+
+#[test]
+fn test_tools_02_missing_required_path() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "read_file", "arguments": {}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing required path to fail");
+}
+
+#[test]
+fn test_tools_02_write_without_read() {
+    let exercise = load_exercise("fundamentals", "tools_02");
+    let grader = Grader::new().unwrap();
+
+    // Invariant requires reading orders.py before writing
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "write_file", "arguments": {"path": "/src/orders.py", "content": "content"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected write without read to fail due to invariant"
+    );
+}
+
+// =============================================================================
+// ERROR_01 Tests - Handling Tool Failures
+// =============================================================================
+
+#[test]
+fn test_error_01_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_error_01_unknown_tool() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "delete_user", "arguments": {"user_id": "123"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected unknown tool to fail");
+}
+
+#[test]
+fn test_error_01_missing_user_id() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "get_user_profile", "arguments": {}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing user_id to fail");
+}
+
+#[test]
+fn test_error_01_missing_error_handling() {
+    let exercise = load_exercise("fundamentals", "error_01");
+    let grader = Grader::new().unwrap();
+
+    // No on_error field - should fail invariant
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "get_user_profile", "arguments": {"user_id": "user123"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected missing error handling to fail invariant"
+    );
+}
+
+// =============================================================================
+// GUARDRAILS_01 Tests - Input/Output Validation
+// =============================================================================
+
+#[test]
+fn test_guardrails_01_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_guardrails_01_invalid_order_id_format() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "lookup_order", "arguments": {"order_id": "ABC-123"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected invalid order_id format (non-numeric) to fail"
+    );
+}
+
+#[test]
+fn test_guardrails_01_invalid_email_format() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "send_email", "arguments": {
+                "to": "not-an-email",
+                "subject": "Test",
+                "body": "Test body"
+            }}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid email format to fail");
+}
+
+#[test]
+fn test_guardrails_01_missing_input_validation() {
+    let exercise = load_exercise("fundamentals", "guardrails_01");
+    let grader = Grader::new().unwrap();
+
+    // No input_validation field - should fail invariant
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "lookup_order", "arguments": {"order_id": "123456"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected missing input_validation to fail invariant"
+    );
+}
+
+// =============================================================================
+// OBSERVABILITY_01 Tests - Tracing and Cost Awareness
+// =============================================================================
+
+#[test]
+fn test_observability_01_fundamentals_track() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Fundamentals,
+        "Exercise should be in fundamentals track"
+    );
+}
+
+#[test]
+fn test_observability_01_unknown_tool() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "delete_document", "arguments": {"document_id": "doc-001"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected unknown tool to fail");
+}
+
+#[test]
+fn test_observability_01_invalid_format_enum() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "read_document", "arguments": {"document_id": "doc-001", "format": "pdf"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected invalid format enum to fail");
+}
+
+#[test]
+fn test_observability_01_summary_length_out_of_range() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "summarize_text", "arguments": {"text": "Some text", "max_length": 1500}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected max_length > 1000 to fail");
+}
+
+#[test]
+fn test_observability_01_missing_message_body() {
+    let exercise = load_exercise("fundamentals", "observability_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "tool_calls": [
+            {"name": "send_message", "arguments": {"to": "user@example.com", "subject": "Test"}}
+        ]
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing body field to fail");
+}
