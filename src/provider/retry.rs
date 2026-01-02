@@ -1,13 +1,17 @@
 //! Retry logic for handling rate limiting and transient failures.
 //!
 //! This module provides a retry wrapper for model providers that handles
-//! rate limiting (429 errors) with exponential backoff.
+//! rate limiting (429 errors) with exponential backoff and jitter.
+//!
+//! The jitter helps prevent the "thundering herd" problem where multiple
+//! clients retry at exactly the same time after receiving rate limit errors.
 
 use super::traits::ModelProvider;
 use super::{CompletionRequest, CompletionResponse};
 use crate::error::ProviderError;
 use crate::{Error, Result};
 use async_trait::async_trait;
+use rand::Rng;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -26,6 +30,9 @@ pub struct RetryConfig {
 
     /// Multiplier for exponential backoff (typically 2.0)
     pub backoff_multiplier: f64,
+
+    /// Whether to add jitter to delays (prevents thundering herd)
+    pub use_jitter: bool,
 }
 
 impl Default for RetryConfig {
@@ -35,6 +42,7 @@ impl Default for RetryConfig {
             initial_delay_ms: 1000, // 1 second
             max_delay_ms: 30000,    // 30 seconds
             backoff_multiplier: 2.0,
+            use_jitter: true, // Enable jitter by default
         }
     }
 }
@@ -49,11 +57,35 @@ impl RetryConfig {
         }
     }
 
-    /// Calculate delay for a given attempt (0-indexed).
-    fn delay_for_attempt(&self, attempt: u32) -> Duration {
+    /// Create a retry config without jitter (for testing or deterministic behavior).
+    pub fn without_jitter(mut self) -> Self {
+        self.use_jitter = false;
+        self
+    }
+
+    /// Calculate base delay for a given attempt (0-indexed), before jitter.
+    fn base_delay_for_attempt(&self, attempt: u32) -> u64 {
         let delay_ms =
             (self.initial_delay_ms as f64) * self.backoff_multiplier.powi(attempt as i32);
-        let delay_ms = delay_ms.min(self.max_delay_ms as f64) as u64;
+        delay_ms.min(self.max_delay_ms as f64) as u64
+    }
+
+    /// Calculate delay for a given attempt (0-indexed), with optional jitter.
+    ///
+    /// When jitter is enabled, uses "full jitter" which picks a random value
+    /// between 0 and the calculated delay. This provides the best distribution
+    /// for avoiding thundering herd issues.
+    fn delay_for_attempt(&self, attempt: u32) -> Duration {
+        let base_delay_ms = self.base_delay_for_attempt(attempt);
+
+        let delay_ms = if self.use_jitter {
+            // Full jitter: random value in [0, base_delay]
+            let mut rng = rand::rng();
+            rng.random_range(0..=base_delay_ms)
+        } else {
+            base_delay_ms
+        };
+
         Duration::from_millis(delay_ms)
     }
 }
@@ -145,31 +177,63 @@ mod tests {
         assert_eq!(config.initial_delay_ms, 1000);
         assert_eq!(config.max_delay_ms, 30000);
         assert_eq!(config.backoff_multiplier, 2.0);
+        assert!(config.use_jitter);
     }
 
     #[test]
-    fn test_delay_calculation() {
+    fn test_base_delay_calculation() {
         let config = RetryConfig {
             max_retries: 5,
             initial_delay_ms: 1000,
             max_delay_ms: 10000,
             backoff_multiplier: 2.0,
+            use_jitter: false,
         };
 
         // Attempt 0: 1000ms * 2^0 = 1000ms
-        assert_eq!(config.delay_for_attempt(0), Duration::from_millis(1000));
+        assert_eq!(config.base_delay_for_attempt(0), 1000);
 
         // Attempt 1: 1000ms * 2^1 = 2000ms
-        assert_eq!(config.delay_for_attempt(1), Duration::from_millis(2000));
+        assert_eq!(config.base_delay_for_attempt(1), 2000);
 
         // Attempt 2: 1000ms * 2^2 = 4000ms
-        assert_eq!(config.delay_for_attempt(2), Duration::from_millis(4000));
+        assert_eq!(config.base_delay_for_attempt(2), 4000);
 
         // Attempt 3: 1000ms * 2^3 = 8000ms
-        assert_eq!(config.delay_for_attempt(3), Duration::from_millis(8000));
+        assert_eq!(config.base_delay_for_attempt(3), 8000);
 
         // Attempt 4: 1000ms * 2^4 = 16000ms, but capped at 10000ms
-        assert_eq!(config.delay_for_attempt(4), Duration::from_millis(10000));
+        assert_eq!(config.base_delay_for_attempt(4), 10000);
+    }
+
+    #[test]
+    fn test_delay_without_jitter() {
+        let config = RetryConfig::new(3, 1000).without_jitter();
+
+        // Without jitter, delay_for_attempt should return the base delay
+        assert_eq!(config.delay_for_attempt(0), Duration::from_millis(1000));
+        assert_eq!(config.delay_for_attempt(1), Duration::from_millis(2000));
+        assert_eq!(config.delay_for_attempt(2), Duration::from_millis(4000));
+    }
+
+    #[test]
+    fn test_delay_with_jitter_is_bounded() {
+        let config = RetryConfig {
+            max_retries: 3,
+            initial_delay_ms: 1000,
+            max_delay_ms: 30000,
+            backoff_multiplier: 2.0,
+            use_jitter: true,
+        };
+
+        // With jitter, delay should be between 0 and base_delay
+        for _ in 0..100 {
+            let delay = config.delay_for_attempt(0);
+            assert!(delay <= Duration::from_millis(1000));
+
+            let delay = config.delay_for_attempt(1);
+            assert!(delay <= Duration::from_millis(2000));
+        }
     }
 
     #[test]

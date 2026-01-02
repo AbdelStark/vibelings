@@ -180,14 +180,16 @@
   - `[anthropic]` with `api_key_env`
   - `[local]` with `base_url` and `api_key`
 - Updated providers to use config sections for env var names
-- Added retry wrapper (`RetryingProvider`) with exponential backoff:
+- Added retry wrapper (`RetryingProvider`) with exponential backoff and jitter:
   - Handles rate limiting (429) and server errors (5xx)
   - Retries transient connection errors
   - Configurable retry count, delays, and backoff multiplier
+  - Full jitter prevents thundering herd issues
 - Added `create_provider_with_retry()` factory function
 - Updated ExerciseRunner to use retry-enabled provider
 - Added unit tests for new config types
-- Total: 144 tests passing (68 unit + 19 CLI + 57 grading)
+- Added `rand` dependency for jitter generation
+- Total: 146 tests passing (70 unit + 19 CLI + 57 grading)
 - All code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 7)
