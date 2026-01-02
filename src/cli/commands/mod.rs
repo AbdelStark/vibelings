@@ -80,7 +80,11 @@ pub enum Commands {
     },
 
     /// Check environment and configuration
-    Doctor,
+    Doctor {
+        /// Perform full API connectivity test (may incur small cost)
+        #[arg(short, long)]
+        full: bool,
+    },
 
     /// Show token costs per exercise
     Cost {
