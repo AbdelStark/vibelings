@@ -10,12 +10,37 @@ foundation for building MCP servers that expose capabilities to AI agents.
 The Model Context Protocol (MCP) is an open standard for connecting AI models to external
 tools and data sources. Unlike proprietary tool calling formats, MCP provides:
 
-1. **Standardized tool definitions** - A common schema that works across providers
-2. **JSON-RPC transport** - Reliable request/response semantics
-3. **Discoverability** - Tools can be listed and described programmatically
-4. **Security boundaries** - Clear capability declarations
+1. **Standardized tool definitions** — A common schema that works across providers
+2. **JSON-RPC transport** — Reliable request/response semantics
+3. **Discoverability** — Tools can be listed and described programmatically
+4. **Security boundaries** — Clear capability declarations
 
 Understanding MCP tool definitions is essential for building interoperable agentic systems.
+
+## The Concept: MCP vs Provider-Specific Formats
+
+Different providers have different tool formats:
+
+```
+OpenAI-style:           MCP:
+{                       {
+  "name": "...",          "name": "...",
+  "parameters": {...}     "inputSchema": {...}
+}                       }
+```
+
+**Why MCP matters**: A tool defined in MCP format can be used by any MCP-compatible client. No rewriting for each provider. This is like how REST APIs standardized web services — you don't need a different client for each server.
+
+### Key Differences from OpenAI Format
+
+| Aspect | OpenAI | MCP |
+|--------|--------|-----|
+| Parameter key | `parameters` | `inputSchema` |
+| Schema version | Custom | JSON Schema draft-07 |
+| Discovery | Provider-specific | `tools/list` method |
+| Transport | HTTP/SSE | JSON-RPC over stdio/HTTP |
+
+The mental shift: you're not writing tools for "OpenAI" or "Claude" — you're writing tools for "any MCP client."
 
 ## The Task
 
@@ -84,15 +109,35 @@ Your tool must accept these parameters:
 | `height` | number | For rectangle/triangle | Height of the shape |
 | `base` | number | For triangle | Base of the triangle |
 
+## Common Mistakes
+
+**1. Using `parameters` instead of `inputSchema`**
+```json
+{"parameters": {...}}   // Wrong: OpenAI style
+{"inputSchema": {...}}  // Correct: MCP style
+```
+
+**2. Using "integer" for numeric types**
+```json
+{"type": "integer"}  // Works but less flexible
+{"type": "number"}   // Preferred for MCP
+```
+
+**3. Missing descriptions for properties**
+MCP tools are self-describing. Each property should have a description.
+
+**4. Forgetting required fields declaration**
+The `required` array must explicitly list mandatory parameters.
+
 ## Grading
 
 Your output is validated against:
 
-1. **Structure** - Must have `name`, `description`, and `inputSchema`
-2. **Name** - Must be exactly "calculate_area"
-3. **Input Schema** - Must define `shape` enum with correct values
-4. **Required fields** - Must declare `shape` as required
-5. **Property types** - All numeric parameters must be type "number"
+1. **Structure** — Must have `name`, `description`, and `inputSchema`
+2. **Name** — Must be exactly "calculate_area"
+3. **Input Schema** — Must define `shape` enum with correct values
+4. **Required fields** — Must declare `shape` as required
+5. **Property types** — All numeric parameters must be type "number"
 
 ## Key Lesson
 
@@ -102,8 +147,20 @@ Your output is validated against:
 - Required fields are explicitly declared
 - Types are enforced by the protocol
 
-This makes MCP tools discoverable and validatable - a client can inspect
+This makes MCP tools discoverable and validatable — a client can inspect
 available tools and ensure it's calling them correctly before execution.
+
+## Connections
+
+- **Prerequisite**: [fundamentals/tools_01](../../fundamentals/tools_01/) introduces tool calling concepts
+- **Next**: [client_01](../client_01/) shows how to call MCP tools
+- **Related**: [resource_01](../resource_01/) covers MCP resources (data access)
+
+## Further Reading
+
+- [MCP Specification](https://spec.modelcontextprotocol.io/) — The official protocol documentation
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) — Reference implementation
+- [JSON Schema](https://json-schema.org/) — The underlying schema language
 
 ## Hints
 

@@ -15,6 +15,59 @@ Production agents can become expensive and slow without proper controls:
 
 Budget enforcement is operational hygiene, not optional optimization.
 
+## The Concept: Operational Budgets
+
+Think of budgets as circuit breakers for your wallet and your users' patience:
+
+```
+Request arrives
+      │
+      ▼
+┌─────────────────────────┐
+│ Check token budget      │──► Reject if over limit
+└─────────────────────────┘
+      │
+      ▼
+┌─────────────────────────┐
+│ Check daily cost budget │──► Degrade if near limit
+└─────────────────────────┘
+      │
+      ▼
+┌─────────────────────────┐
+│ Process request         │
+└─────────────────────────┘
+      │
+      ▼
+┌─────────────────────────┐
+│ Check latency SLO       │──► Alert if violated
+└─────────────────────────┘
+```
+
+### The Three Budget Dimensions
+
+| Dimension | Why it matters | Example limit |
+|-----------|---------------|---------------|
+| **Cost** | Prevent bill shock | $0.10/request, $100/day |
+| **Latency** | User experience | P95 < 3 seconds |
+| **Tokens** | Prevent runaway usage | 8K tokens/request |
+
+All three must be tracked. A request can be cheap but slow, or fast but expensive.
+
+### Graceful Degradation
+
+When approaching limits, you have options beyond "crash":
+
+```
+90% of budget used:
+  ├── Switch to smaller/cheaper model
+  ├── Reduce context window
+  ├── Skip optional tool calls
+  └── Cache more aggressively
+
+100% of budget used:
+  └── Reject with helpful error message
+```
+
 ## The Task
 
 Design a budget configuration for a customer-facing agent that must:
@@ -107,15 +160,32 @@ What to do when approaching limits:
 | P95 latency warning | skip_optional_tools | Disable non-critical tools |
 | Budget exhausted | reject_new_requests | Return graceful error |
 
+## Common Mistakes
+
+**1. No per-request limits**
+Without per-request limits, a single bad request can consume your daily budget.
+
+**2. Alerts only at 100%**
+```json
+{"alert_thresholds": [1.0]}  // Wrong: too late to react
+{"alert_thresholds": [0.5, 0.8, 0.95]}  // Better: early warning
+```
+
+**3. Hard failures instead of degradation**
+Users prefer a slightly degraded response over no response.
+
+**4. No timeout**
+Without a timeout, a stuck request ties up resources indefinitely.
+
 ## Grading
 
 Your output is validated against:
 
-1. **Cost limits** - Must have per-request, daily, and monthly limits
-2. **Latency SLOs** - Must have P50, P95, P99, and timeout
-3. **Token limits** - Must have input, output, and total limits
-4. **Degradation** - Must define responses to warnings
-5. **Monitoring** - Must have metrics and alerts configured
+1. **Cost limits** — Must have per-request, daily, and monthly limits
+2. **Latency SLOs** — Must have P50, P95, P99, and timeout
+3. **Token limits** — Must have input, output, and total limits
+4. **Degradation** — Must define responses to warnings
+5. **Monitoring** — Must have metrics and alerts configured
 
 ## Key Lesson
 
@@ -130,9 +200,22 @@ Effective budget management:
 
 The goal is predictable operations, not penny-pinching.
 
+## Connections
+
+- **Prerequisite**: [fundamentals/observability_01](../../fundamentals/observability_01/) — cost awareness
+- **Related**: [production_eval_01](../production_eval_01/) — evals should include cost metrics
+- **Context**: [context/context_02](../../context/context_02/) — token budgets are a form of budget management
+
+## Further Reading
+
+- [Anthropic: Rate limits](https://docs.anthropic.com/en/api/rate-limits) — Understanding API limits
+- [OpenRouter pricing](https://openrouter.ai/docs#models) — Cost comparison across providers
+- [SLOs, SLIs, and SLAs](https://sre.google/sre-book/service-level-objectives/) — Google SRE on reliability targets
+
 ## Hints
 
 If you're stuck:
 - Use `vibelings hint` for progressive hints
 - Think: "What happens at 3am when no one is watching?"
 - Consider: graceful degradation > hard failures
+- Multiple alert thresholds give you time to react

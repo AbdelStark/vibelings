@@ -244,10 +244,14 @@ Every exercise needs a clear README with:
 
 1. **Goal** - What the learner will accomplish
 2. **Why This Matters** - Real-world relevance
-3. **The Task** - Specific instructions
-4. **Expected Output Format** - Clear examples
-5. **Grading** - What's being validated
-6. **Key Lesson** - Core takeaway
+3. **The Concept** - Conceptual explanation with diagrams and analogies
+4. **The Task** - Specific instructions
+5. **Common Mistakes** - Anti-patterns with examples
+6. **Expected Output Format** - Clear examples
+7. **Grading** - What's being validated
+8. **Key Lesson** - Core takeaway
+9. **Connections** - Links to related exercises
+10. **Further Reading** - External resources for deeper learning
 
 ### Template
 
@@ -262,6 +266,17 @@ Every exercise needs a clear README with:
 
 [2-3 sentences on real-world relevance]
 
+## The Concept: [Concept Name]
+
+[Explanation of the underlying concept. Include:]
+- An analogy to familiar programming concepts
+- An ASCII diagram showing the concept visually
+- A comparison table (e.g., "before/after", "with/without", "approach A vs B")
+
+### [Subsection if needed]
+
+[Additional conceptual depth]
+
 ## The Task
 
 [Specific instructions for what to do]
@@ -269,6 +284,18 @@ Every exercise needs a clear README with:
 ## Expected Output Format
 
 [JSON or code examples showing expected format]
+
+## Common Mistakes
+
+**1. [Mistake name]**
+\`\`\`json
+{"wrong": "example"}   // Wrong: [why it's wrong]
+{"right": "example"}   // Correct: [why it's right]
+\`\`\`
+[One sentence explaining the fix]
+
+**2. [Mistake name]**
+[Continue pattern for 3-5 common mistakes]
 
 ## Grading
 
@@ -282,12 +309,128 @@ Your output is validated against:
 
 [One paragraph summarizing the core concept]
 
+## Connections
+
+- **Prerequisite**: [exercise_path](relative/path/) — what it teaches
+- **Next**: [exercise_path](relative/path/) — what comes after
+- **Related**: [exercise_path](relative/path/) — how it connects
+
+## Further Reading
+
+- [Title](URL) — One-line description
+- [Title](URL) — One-line description
+
 ## Hints
 
 If you're stuck:
 - Use `vibelings hint` for progressive hints
 - [Additional guidance]
 ```
+
+## Educational Content Standards
+
+High-quality educational content is the differentiator for vibelings. Every exercise should teach, not just test.
+
+### The Concept Section
+
+This is the most important educational element. Requirements:
+
+1. **Name the concept explicitly** - "The Concept: Schema as Contract", not just "The Concept"
+2. **Use analogies** - Connect to familiar programming concepts (APIs, type systems, compilers)
+3. **Include ASCII diagrams** - Visual learners need visual explanations
+4. **Add comparison tables** - Show trade-offs between approaches
+5. **Explain the "why"** - Don't just show what, explain why it matters
+
+Example pattern:
+```markdown
+## The Concept: [Memorable Name]
+
+[Opening paragraph connecting to something familiar]
+
+\`\`\`
+[ASCII diagram showing the concept]
+\`\`\`
+
+**The key insight**: [One sentence crystallizing the core idea]
+
+### [Optional subsection]
+
+| Approach A | Approach B |
+|------------|------------|
+| Trade-off 1 | Trade-off 1 |
+| Trade-off 2 | Trade-off 2 |
+```
+
+### Common Mistakes Section
+
+Anti-patterns teach as much as patterns. Requirements:
+
+1. **Show wrong code first** - Learners recognize their own mistakes
+2. **Explain why it's wrong** - Not just "don't do this"
+3. **Show the correct version** - Side-by-side comparison
+4. **Cover 3-5 mistakes** - Most common errors for this concept
+
+Example pattern:
+```markdown
+## Common Mistakes
+
+**1. [Descriptive name]**
+\`\`\`json
+{"wrong": "example"}   // Wrong: [specific reason]
+{"right": "example"}   // Correct: [what changed]
+\`\`\`
+[One sentence on the underlying misconception]
+```
+
+### Connections Section
+
+Learning is a graph, not a list. Requirements:
+
+1. **Link to prerequisites** - What should they have learned first?
+2. **Link to next steps** - Where does this lead?
+3. **Link to related concepts** - Cross-track connections
+4. **Use relative paths** - Links should work in rendered markdown
+
+Example pattern:
+```markdown
+## Connections
+
+- **Prerequisite**: [json_01](../../fundamentals/json_01/) — JSON schema basics
+- **Next**: [tools_02](../tools_02/) — chaining tool calls
+- **Related**: [context_02](../../context/context_02/) — context budgeting uses schemas
+```
+
+### Further Reading Section
+
+Point to authoritative external resources. Requirements:
+
+1. **Use official documentation** - Anthropic docs, MCP spec, etc.
+2. **Include seminal articles** - The canonical reference for a concept
+3. **Add practical guides** - Not just theory
+4. **Provide 2-4 links** - Enough to explore, not overwhelming
+5. **One-line descriptions** - Help learners pick what's relevant
+
+Example pattern:
+```markdown
+## Further Reading
+
+- [JSON Schema Specification](https://json-schema.org/) — The authoritative reference
+- [Anthropic: Structured outputs](https://docs.anthropic.com/...) — Official guidance
+- [Understanding JSON Schema](https://json-schema.org/understanding-json-schema) — Beginner-friendly tutorial
+```
+
+### Quality Checklist for Educational Content
+
+- [ ] Concept section has a memorable name
+- [ ] At least one ASCII diagram or visual
+- [ ] At least one analogy to familiar programming concepts
+- [ ] At least one comparison table showing trade-offs
+- [ ] 3-5 common mistakes with wrong/right examples
+- [ ] Connections to at least 2 other exercises
+- [ ] 2-4 quality external resources
+- [ ] No marketing fluff or unnecessary enthusiasm
+- [ ] Technical accuracy verified
+- [ ] Matches the "no bullshit" tone of the project
 
 ## Writing hints.md
 

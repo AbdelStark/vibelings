@@ -13,7 +13,35 @@ Production agentic systems require continuous evaluation to:
 - Validate behavior against known-good examples
 - Track drift over time
 
-Evals are not one-time tests - they're an ongoing reliability practice.
+Evals are not one-time tests — they're an ongoing reliability practice.
+
+## The Concept: Evals as Production Infrastructure
+
+LLMs are non-deterministic. The same prompt can produce different outputs. This makes testing fundamentally different from traditional software:
+
+```
+Traditional Testing:          LLM Testing:
+f(x) = y                      f(x) ≈ y (sometimes)
+Pass/Fail (binary)            Pass rate (statistical)
+One run sufficient            Multiple runs required
+```
+
+**The key insight**: You're not testing "correctness" — you're measuring *reliability*. An 80% pass rate might be acceptable for some tasks, catastrophic for others.
+
+### The Eval Feedback Loop
+
+```
+┌─────────────────────────────────────────────────────┐
+│                                                     │
+│   Code Change ───► Run Evals ───► Results           │
+│        ▲                              │             │
+│        │                              ▼             │
+│        └─── Iterate ◄──── Regression? ──► Deploy   │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+Evals run on every change. Regressions block deployment. This is CI/CD for LLM systems.
 
 ## The Task
 
@@ -101,15 +129,35 @@ Each metric needs:
 | semantic | Meaning preserved | Embedding similarity |
 | behavioral | Correct action taken | Schema validation |
 
+## Common Mistakes
+
+**1. Only testing happy paths**
+Real users send typos, irrelevant questions, and edge cases. Test those too.
+
+**2. Insufficient runs for statistical confidence**
+```json
+{"runs_per_case": 1}  // Wrong: single run proves nothing
+{"runs_per_case": 5}  // Better: can measure reliability
+```
+
+**3. No baseline for regression detection**
+Without a baseline, you can't detect degradation. Always compare to known-good state.
+
+**4. Binary metrics for statistical behaviors**
+```json
+{"threshold": 1.0}  // Wrong: demands perfection from non-deterministic system
+{"threshold": 0.8}  // Better: accepts reasonable reliability
+```
+
 ## Grading
 
 Your output is validated against:
 
-1. **Structure** - Must have all required sections
-2. **Test cases** - Minimum 3 with required fields
-3. **Metrics** - Minimum 2 with thresholds
-4. **Reliability** - Proper multi-run configuration
-5. **Regression** - Detection configuration present
+1. **Structure** — Must have all required sections
+2. **Test cases** — Minimum 3 with required fields
+3. **Metrics** — Minimum 2 with thresholds
+4. **Reliability** — Proper multi-run configuration
+5. **Regression** — Detection configuration present
 
 ## Key Lesson
 
@@ -122,7 +170,19 @@ Good eval harnesses:
 - Provide actionable failure information
 - Track reliability over time
 
-Without evals, you're flying blind.
+Without evals, you're flying blind. Model updates, prompt changes, and even API updates can cause regressions. Evals catch them.
+
+## Connections
+
+- **Prerequisite**: All fundamentals exercises — evals tie everything together
+- **Related**: [production_budget_01](../production_budget_01/) — evals should include cost metrics
+- **Production**: Evals integrate with CI/CD pipelines
+
+## Further Reading
+
+- [Anthropic: Evaluating AI systems](https://www.anthropic.com/research/evaluating-ai-systems) — Framework for AI evaluation
+- [OpenAI Evals](https://github.com/openai/evals) — Open-source evaluation framework
+- [Braintrust](https://www.braintrust.dev/) — Production eval infrastructure
 
 ## Hints
 
@@ -130,3 +190,4 @@ If you're stuck:
 - Use `vibelings hint` for progressive hints
 - Think about what could go wrong with a support agent
 - Consider: what would a "silent failure" look like?
+- Include both classification accuracy AND response quality metrics
