@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Resource Definition",
+  "description": "Valid MCP resource definition for user profile",
+  "type": "object",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "const": "user://profile/current",
+      "description": "The resource URI"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Human-readable resource name"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "description": "Description of the resource contents"
+    },
+    "mimeType": {
+      "type": "string",
+      "const": "application/json",
+      "description": "MIME type of the resource content"
+    }
+  },
+  "required": ["uri", "name", "description", "mimeType"],
+  "additionalProperties": false
+}

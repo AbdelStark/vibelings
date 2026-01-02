@@ -1726,3 +1726,136 @@ fn test_production_budget_01_invalid_on_limit_reached() {
         "Expected invalid on_limit_reached value to fail"
     );
 }
+
+// =============================================================================
+// MCP_RESOURCE_01 Tests - MCP Resource Definition
+// =============================================================================
+
+#[test]
+fn test_mcp_resource_01_valid_resource() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let valid_output = r#"{
+        "uri": "user://profile/current",
+        "name": "Current User Profile",
+        "description": "The authenticated user's profile information including name, email, and preferences",
+        "mimeType": "application/json"
+    }"#;
+
+    let result = grader.grade(&exercise, valid_output).unwrap();
+    assert!(
+        result.passed,
+        "Expected valid MCP resource definition to pass: {}",
+        result.message
+    );
+}
+
+#[test]
+fn test_mcp_resource_01_wrong_uri() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "uri": "https://api.example.com/profile",
+        "name": "User Profile",
+        "description": "The user profile information from the API",
+        "mimeType": "application/json"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong URI to fail");
+}
+
+#[test]
+fn test_mcp_resource_01_wrong_mime_type() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "uri": "user://profile/current",
+        "name": "User Profile",
+        "description": "The user profile information as plain text",
+        "mimeType": "text/plain"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected wrong MIME type to fail");
+}
+
+#[test]
+fn test_mcp_resource_01_name_too_short() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "uri": "user://profile/current",
+        "name": "User",
+        "description": "The user profile information with all details",
+        "mimeType": "application/json"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected name < 5 chars to fail");
+}
+
+#[test]
+fn test_mcp_resource_01_description_too_short() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "uri": "user://profile/current",
+        "name": "User Profile",
+        "description": "User profile data",
+        "mimeType": "application/json"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected description < 20 chars to fail");
+}
+
+#[test]
+fn test_mcp_resource_01_missing_field() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "uri": "user://profile/current",
+        "name": "User Profile",
+        "mimeType": "application/json"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(!result.passed, "Expected missing description to fail");
+}
+
+#[test]
+fn test_mcp_resource_01_extra_field() {
+    let exercise = load_exercise("mcp", "resource_01");
+    let grader = Grader::new().unwrap();
+
+    let invalid_output = r#"{
+        "uri": "user://profile/current",
+        "name": "Current User Profile",
+        "description": "The authenticated user's profile information",
+        "mimeType": "application/json",
+        "extra_field": "not allowed"
+    }"#;
+
+    let result = grader.grade(&exercise, invalid_output).unwrap();
+    assert!(
+        !result.passed,
+        "Expected extra field to fail (additionalProperties: false)"
+    );
+}
+
+#[test]
+fn test_mcp_resource_01_mcp_track() {
+    let exercise = load_exercise("mcp", "resource_01");
+    assert_eq!(
+        exercise.manifest.exercise.track,
+        Track::Mcp,
+        "Exercise should be in MCP track"
+    );
+}

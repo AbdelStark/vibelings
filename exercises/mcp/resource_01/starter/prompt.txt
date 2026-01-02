@@ -1,0 +1,8 @@
+Define an MCP resource for a user profile with URI "user://profile/current".
+
+The resource should:
+- Have a descriptive name (at least 5 characters)
+- Include a detailed description of what the resource contains (at least 20 characters)
+- Use "application/json" as the MIME type
+
+Your output must be valid JSON that conforms to the MCP resource schema. Output only the JSON object, no additional text.
