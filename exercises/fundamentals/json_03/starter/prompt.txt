@@ -1,0 +1,11 @@
+Generate a JSON object representing an event schedule for "AI Engineering Summit 2025" on 2025-06-15 with at least 3 sessions.
+
+Each session must include:
+- A unique session ID (e.g., "S001", "S002", "S003")
+- A descriptive title
+- A speaker name
+- A time slot in 24-hour format (HH:MM)
+- A duration in minutes (between 15 and 120)
+- A track type: "technical", "workshop", or "keynote"
+
+Your output must be valid JSON that conforms to the event schedule schema. Output only the JSON object, no additional text.
