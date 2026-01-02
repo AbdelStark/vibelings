@@ -269,6 +269,25 @@ impl UserProgress {
             .map(|p| p.status)
             .unwrap_or(ExerciseStatus::Pending)
     }
+
+    /// Mark an exercise as completed.
+    pub fn mark_completed(&mut self, exercise_id: &str) {
+        let progress = self
+            .exercises
+            .entry(exercise_id.to_string())
+            .or_insert_with(|| ExerciseProgress {
+                status: ExerciseStatus::Pending,
+                attempts: 0,
+                successful_runs: 0,
+                total_runs: 0,
+                last_attempt: None,
+                total_tokens: 0,
+                total_cost: 0.0,
+            });
+        progress.status = ExerciseStatus::Completed;
+        progress.successful_runs += 1;
+        progress.total_runs += 1;
+    }
 }
 
 #[cfg(test)]
@@ -319,5 +338,33 @@ timeout_seconds = 60
         assert!(progress.is_completed("json_01"));
         assert!(!progress.is_completed("json_02"));
         assert!(progress.completed_exercises().contains("json_01"));
+    }
+
+    #[test]
+    fn test_mark_completed() {
+        let mut progress = UserProgress::default();
+
+        // Initially, exercise should not be completed
+        assert!(!progress.is_completed("json_01"));
+        assert_eq!(progress.get_status("json_01"), ExerciseStatus::Pending);
+
+        // Mark as completed
+        progress.mark_completed("json_01");
+
+        // Should now be completed
+        assert!(progress.is_completed("json_01"));
+        assert_eq!(progress.get_status("json_01"), ExerciseStatus::Completed);
+        assert!(progress.completed_exercises().contains("json_01"));
+
+        // Check the exercise progress details
+        let ex_progress = progress.exercises.get("json_01").unwrap();
+        assert_eq!(ex_progress.successful_runs, 1);
+        assert_eq!(ex_progress.total_runs, 1);
+
+        // Mark again should increment runs
+        progress.mark_completed("json_01");
+        let ex_progress = progress.exercises.get("json_01").unwrap();
+        assert_eq!(ex_progress.successful_runs, 2);
+        assert_eq!(ex_progress.total_runs, 2);
     }
 }
