@@ -32,7 +32,7 @@ pub async fn run() -> Result<()> {
         }
         Some(Commands::Verify { exercise }) => commands::verify::run(exercise.as_deref()).await,
         Some(Commands::Replay { run_id }) => commands::replay::run(run_id).await,
-        Some(Commands::Doctor) => commands::doctor::run().await,
+        Some(Commands::Doctor { full }) => commands::doctor::run(*full).await,
         Some(Commands::Cost { exercise }) => commands::cost::run(exercise.as_deref()).await,
         Some(Commands::Reset { exercise, force }) => commands::reset::run(exercise, *force).await,
         None => {

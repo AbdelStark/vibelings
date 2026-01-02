@@ -393,25 +393,31 @@ impl Grader {
     }
 
     /// Grade based on reliability (multi-run).
+    ///
+    /// NOTE: This grader type is deprecated. Multi-run reliability should be
+    /// configured via `run.runs` and `run.required_passes` in the exercise
+    /// manifest, with a concrete grader type (Schema, Sandbox, etc.).
+    /// The ExerciseRunner handles multi-run orchestration.
     fn grade_reliability(&self, _exercise: &Exercise, _output: &str) -> Result<GradingResult> {
-        // TODO: Implement reliability grading
-        Ok(GradingResult {
-            passed: true,
-            message: "Reliability grading not yet implemented".to_string(),
-            details: vec![],
-            schema_errors: vec![],
-        })
+        Err(Error::Grading(GradingError::NotImplemented(
+            "GraderType::Reliability is deprecated. Use a concrete grader type (schema, sandbox, \
+             combined, invariants) with run.runs > 1 in manifest.toml for multi-run reliability. \
+             The runner handles multi-run orchestration automatically."
+                .to_string(),
+        )))
     }
 
     /// Grade using LLM-as-judge (last resort).
+    ///
+    /// This grading method uses an LLM to evaluate the output against a rubric.
+    /// It should only be used when deterministic grading is not possible.
     fn grade_llm_judge(&self, _exercise: &Exercise, _output: &str) -> Result<GradingResult> {
-        // TODO: Implement LLM-as-judge grading
-        Ok(GradingResult {
-            passed: true,
-            message: "LLM-as-judge grading not yet implemented".to_string(),
-            details: vec![],
-            schema_errors: vec![],
-        })
+        Err(Error::Grading(GradingError::NotImplemented(
+            "LLM-as-judge grading is not yet implemented. This is intentionally a low priority \
+             as deterministic grading (schema, sandbox, invariants) is preferred. If you need \
+             this feature, please open an issue on the vibelings repository."
+                .to_string(),
+        )))
     }
 }
 
@@ -670,5 +676,33 @@ mod tests {
         let result = grader.grade(&exercise, output).unwrap();
         assert!(result.passed);
         assert_eq!(result.details.len(), 3);
+    }
+
+    #[test]
+    fn test_reliability_grader_returns_error() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::Reliability, &temp_dir);
+
+        let result = grader.grade(&exercise, "any output");
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+        let err_msg = err.to_string();
+        assert!(err_msg.contains("not implemented") || err_msg.contains("deprecated"));
+    }
+
+    #[test]
+    fn test_llm_judge_grader_returns_error() {
+        let grader = Grader::new().unwrap();
+        let temp_dir = TempDir::new().unwrap();
+        let exercise = create_test_exercise(GraderType::LlmJudge, &temp_dir);
+
+        let result = grader.grade(&exercise, "any output");
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+        let err_msg = err.to_string();
+        assert!(err_msg.contains("not implemented") || err_msg.contains("not yet implemented"));
     }
 }

@@ -136,6 +136,9 @@ pub enum GradingError {
 
     #[error("Invalid grader configuration: {0}")]
     InvalidConfig(String),
+
+    #[error("Grader type not implemented: {0}")]
+    NotImplemented(String),
 }
 
 /// Sandbox-related errors.

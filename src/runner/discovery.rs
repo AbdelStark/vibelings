@@ -162,8 +162,150 @@ impl ExerciseRunner {
     }
 
     /// Run an exercise and return the result.
-    pub async fn run_exercise(&self, exercise_id: &str, _verbose: bool) -> Result<RunResult> {
+    ///
+    /// If the exercise is configured for multi-run reliability (`run.runs > 1`),
+    /// it will be executed multiple times and the results aggregated.
+    pub async fn run_exercise(&self, exercise_id: &str, verbose: bool) -> Result<RunResult> {
         let exercise = self.get_exercise(exercise_id)?;
+        let num_runs = exercise.manifest.run.runs;
+
+        // For multi-run exercises, run multiple times and aggregate
+        if num_runs > 1 {
+            return self.run_exercise_multi(exercise_id, &exercise, num_runs, verbose).await;
+        }
+
+        self.run_exercise_single(&exercise, verbose).await
+    }
+
+    /// Run an exercise multiple times for reliability testing.
+    async fn run_exercise_multi(
+        &self,
+        exercise_id: &str,
+        exercise: &Exercise,
+        num_runs: u32,
+        verbose: bool,
+    ) -> Result<RunResult> {
+        let start = Instant::now();
+        let required_passes = exercise
+            .manifest
+            .run
+            .required_passes
+            .unwrap_or(num_runs.div_ceil(2)); // Default: majority must pass
+
+        let mut passed_runs = 0u32;
+        let mut total_cost = 0.0f64;
+        let mut total_tokens_in = 0u32;
+        let mut total_tokens_out = 0u32;
+        let mut total_tool_calls = 0u32;
+        let mut trace_ids: Vec<String> = Vec::new();
+
+        if verbose {
+            println!(
+                "Running {} times (need {} to pass)...",
+                num_runs, required_passes
+            );
+        }
+
+        for run_idx in 0..num_runs {
+            if verbose {
+                println!("  Run {}/{}...", run_idx + 1, num_runs);
+            }
+
+            match self.run_exercise_single(exercise, false).await {
+                Ok(result) => {
+                    if result.passed {
+                        passed_runs += 1;
+                    }
+                    total_cost += result.cost_usd;
+                    total_tokens_in += result.tokens_in;
+                    total_tokens_out += result.tokens_out;
+                    total_tool_calls += result.tool_calls;
+                    if let Some(trace_id) = result.trace_id {
+                        trace_ids.push(trace_id);
+                    }
+                }
+                Err(_) => {
+                    // Run failed with error - counted as a failed run
+                }
+            }
+
+            // Early exit if already passed threshold
+            if passed_runs >= required_passes {
+                break;
+            }
+
+            // Early exit if impossible to reach threshold
+            let remaining_runs = num_runs - run_idx - 1;
+            if passed_runs + remaining_runs < required_passes {
+                break;
+            }
+        }
+
+        let duration_secs = start.elapsed().as_secs_f64();
+        let passed = passed_runs >= required_passes;
+
+        // Update progress for multi-run
+        let mut progress = load_progress().unwrap_or_default();
+        let exercise_progress = progress
+            .exercises
+            .entry(exercise_id.to_string())
+            .or_insert_with(|| ExerciseProgress {
+                status: ExerciseStatus::InProgress,
+                attempts: 0,
+                successful_runs: 0,
+                total_runs: 0,
+                last_attempt: None,
+                total_tokens: 0,
+                total_cost: 0.0,
+            });
+
+        exercise_progress.attempts += 1;
+        exercise_progress.total_runs += num_runs;
+        exercise_progress.successful_runs += passed_runs;
+        exercise_progress.total_tokens += (total_tokens_in + total_tokens_out) as u64;
+        exercise_progress.total_cost += total_cost;
+        exercise_progress.last_attempt = Some(chrono::Utc::now().to_rfc3339());
+
+        if passed {
+            exercise_progress.status = ExerciseStatus::Completed;
+        } else if passed_runs > 0 {
+            exercise_progress.status = ExerciseStatus::Flaky;
+        }
+
+        save_progress(&progress)?;
+
+        Ok(RunResult {
+            passed,
+            error_message: if passed {
+                None
+            } else {
+                Some(format!(
+                    "Reliability threshold not met: {}/{} runs passed, need {}",
+                    passed_runs, num_runs, required_passes
+                ))
+            },
+            duration_secs,
+            cost_usd: total_cost,
+            tool_calls: total_tool_calls,
+            tokens_in: total_tokens_in,
+            tokens_out: total_tokens_out,
+            grading_details: Some(format!(
+                "Multi-run reliability: {}/{} passed (required: {})",
+                passed_runs, num_runs, required_passes
+            )),
+            trace_id: trace_ids.first().cloned(),
+        })
+    }
+
+    /// Run an exercise once and return the result.
+    ///
+    /// For multi-run exercises, use `run_exercise_multi` instead which calls this
+    /// method multiple times and aggregates results.
+    ///
+    /// When `update_progress` is true, updates the progress file. Set to false
+    /// when called from `run_exercise_multi` which handles its own progress tracking.
+    async fn run_exercise_single(&self, exercise: &Exercise, _verbose: bool) -> Result<RunResult> {
+        let exercise_id = exercise.full_id();
         let start = Instant::now();
 
         // Load configuration and create provider
@@ -242,51 +384,50 @@ impl ExerciseRunner {
 
         // Grade the result
         let output = response.text().unwrap_or("");
-        let grading_result = self.grader.grade(&exercise, output)?;
+        let grading_result = self.grader.grade(exercise, output)?;
 
         // Create trace
         let trace_id = self.trace_store.save_trace(
-            exercise_id,
+            &exercise_id,
             &system_prompt,
             output,
             grading_result.passed,
             duration_secs,
         )?;
 
-        // Update progress
-        let mut progress = load_progress().unwrap_or_default();
-        let exercise_progress = progress
-            .exercises
-            .entry(exercise_id.to_string())
-            .or_insert_with(|| ExerciseProgress {
-                status: ExerciseStatus::InProgress,
-                attempts: 0,
-                successful_runs: 0,
-                total_runs: 0,
-                last_attempt: None,
-                total_tokens: 0,
-                total_cost: 0.0,
-            });
-
-        exercise_progress.attempts += 1;
-        exercise_progress.total_runs += 1;
-        exercise_progress.total_tokens += usage.total_tokens as u64;
-        exercise_progress.last_attempt = Some(chrono::Utc::now().to_rfc3339());
-
-        if grading_result.passed {
-            exercise_progress.successful_runs += 1;
-
-            // Check if we meet reliability threshold
-            let required_passes = exercise.manifest.run.required_passes.unwrap_or(1);
-            if exercise_progress.successful_runs >= required_passes {
-                exercise_progress.status = ExerciseStatus::Completed;
-            }
-        }
-
-        save_progress(&progress)?;
-
         // Calculate cost (approximate)
         let cost_usd = usage.estimate_cost(0.003, 0.015); // Claude Sonnet pricing estimate
+
+        // Note: For single-run exercises (runs == 1), progress is tracked here.
+        // For multi-run exercises, run_exercise_multi handles progress tracking.
+        if exercise.manifest.run.runs == 1 {
+            let mut progress = load_progress().unwrap_or_default();
+            let exercise_progress = progress
+                .exercises
+                .entry(exercise_id.clone())
+                .or_insert_with(|| ExerciseProgress {
+                    status: ExerciseStatus::InProgress,
+                    attempts: 0,
+                    successful_runs: 0,
+                    total_runs: 0,
+                    last_attempt: None,
+                    total_tokens: 0,
+                    total_cost: 0.0,
+                });
+
+            exercise_progress.attempts += 1;
+            exercise_progress.total_runs += 1;
+            exercise_progress.total_tokens += usage.total_tokens as u64;
+            exercise_progress.total_cost += cost_usd;
+            exercise_progress.last_attempt = Some(chrono::Utc::now().to_rfc3339());
+
+            if grading_result.passed {
+                exercise_progress.successful_runs += 1;
+                exercise_progress.status = ExerciseStatus::Completed;
+            }
+
+            save_progress(&progress)?;
+        }
 
         Ok(RunResult {
             passed: grading_result.passed,

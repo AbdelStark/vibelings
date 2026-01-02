@@ -2,7 +2,7 @@
 
 > Tracking progress for building "Rustlings for agentic programming"
 
-## Current Status: Phase 2 - CLI Implementation (Mostly Complete)
+## Current Status: Phase 6 - Polish & Testing (In Progress)
 
 **Last Updated:** 2026-01-02
 
@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | Phase 1 | Foundation - Core infrastructure | ✅ Complete |
 | Phase 2 | CLI Implementation | ✅ Complete |
-| Phase 3 | First Exercise Track | ✅ Complete (2 exercises) |
+| Phase 3 | First Exercise Track | ✅ Complete (7 exercises) |
 | Phase 4 | Provider Integration | ✅ Complete (OpenRouter) |
 | Phase 5 | Sandbox & Security | ✅ Complete |
 | Phase 6 | Polish & Testing | 🚧 In Progress |
@@ -129,13 +129,14 @@
 ## Phase 6: Polish & Testing 🚧
 
 ### Milestone 6.1: Testing 🚧
-- [x] Unit tests for all modules (25 passing)
-- [ ] Integration tests
+- [x] Unit tests for all modules (36 passing)
+- [x] Grader error handling tests
+- [x] CLI integration tests (11 passing)
 - [ ] Exercise grading tests
 - [ ] CI/CD setup
 
 ### Milestone 6.2: Documentation
-- [ ] README.md with usage instructions
+- [x] README.md with usage instructions
 - [ ] AGENTS.md for agent guidance
 - [ ] Exercise authoring guide
 - [ ] API documentation
@@ -148,6 +149,16 @@
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 3)
+- Fixed incorrect stub behavior in graders (Reliability and LlmJudge now return proper errors)
+- Implemented multi-run reliability in ExerciseRunner
+- Added tests for grader error handling (36 unit tests total)
+- Added CLI integration tests (11 tests)
+- Added comprehensive README.md documentation
+- Enhanced doctor command with --full API connectivity test
+- Total: 47 tests passing (36 unit + 11 integration)
+- Clarified that multi-run is a runner concern, not a grader type
 
 ### 2026-01-02 (Session 2)
 - Completed Phase 1: Foundation
@@ -169,6 +180,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-02 | Multi-run at runner level, not grader | Graders should be single-run deterministic; runner handles K-run orchestration |
 | 2026-01-02 | Use tokio for async | Standard async runtime, good ecosystem |
 | 2026-01-02 | Use clap derive | Cleaner CLI code, type-safe |
 | 2026-01-02 | OpenRouter as default provider | Multi-provider, BYOK, privacy controls |
@@ -198,11 +210,12 @@ Core dependencies:
 
 ## Next Steps
 
-1. Add more exercises to fundamentals track
-2. Implement tool calling exercises
-3. Add integration tests
-4. Complete README.md with usage docs
-5. Set up CI/CD pipeline
+1. ~~Add integration tests~~ ✅ Done (11 tests)
+2. ~~Complete README.md with usage docs~~ ✅ Done
+3. Add AGENTS.md for agent guidance
+4. Set up CI/CD pipeline with GitHub Actions
+5. Add more exercises to MCP track
+6. Implement direct OpenAI/Anthropic providers
 
 ---
 
