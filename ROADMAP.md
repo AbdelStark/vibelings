@@ -2,7 +2,7 @@
 
 > Tracking progress for building "Rustlings for agentic programming"
 
-## Current Status: Phase 7 - Content Expansion (In Progress)
+## Current Status: Phase 7 - Content Expansion (Complete)
 
 **Last Updated:** 2026-01-02
 
@@ -18,7 +18,7 @@
 | Phase 4 | Provider Integration | ✅ Complete (4 providers) |
 | Phase 5 | Sandbox & Security | ✅ Complete |
 | Phase 6 | Polish & Testing | ✅ Complete |
-| Phase 7 | Content Expansion | 🚧 In Progress |
+| Phase 7 | Content Expansion | ✅ Complete |
 
 ---
 
@@ -164,15 +164,29 @@
 - [x] `production/production_security_01` - Prompt injection defense
 - [x] `production/production_budget_01` - Cost/latency budgets
 
-### Milestone 7.3: Release Preparation
-- [ ] Binary builds
-- [ ] Installation instructions
-- [ ] First release notes
-- [ ] API documentation (rustdoc)
+### Milestone 7.3: Release Preparation ✅
+- [x] Binary builds (release workflow for Linux, macOS, Windows)
+- [x] Installation instructions (install.sh, install.ps1)
+- [x] First release notes (CHANGELOG.md)
+- [x] API documentation (rustdoc with GitHub Pages workflow)
 
 ---
 
 ## Progress Log
+
+### 2026-01-02 (Session 7)
+- Completed Phase 7.3: Release Preparation
+- Added release workflow for cross-platform binary builds (Linux, macOS Intel/ARM, Windows)
+- Created CHANGELOG.md with comprehensive v0.1.0 release notes
+- Added documentation workflow for GitHub Pages (rustdoc)
+- Created install scripts:
+  - `install.sh` for Linux/macOS with binary download and cargo fallback
+  - `install.ps1` for Windows PowerShell
+- Enhanced CI with cross-platform testing:
+  - Tests now run on Linux, macOS, and Windows
+  - Smoke tests on all platforms
+- Updated README with new installation options
+- All 57 tests passing, code passes clippy and rustfmt
 
 ### 2026-01-02 (Session 6)
 - Implemented watch mode keyboard interactivity (h/n/l/q)
@@ -283,7 +297,8 @@ Core dependencies:
 10. ~~Add watch mode keyboard interactivity~~ ✅ Done (h/n/l/q)
 11. ~~Add Workflow Orchestration track~~ ✅ Done (3 exercises)
 12. ~~Add Production Engineering track~~ ✅ Done (3 exercises)
-13. Prepare first release (binary builds)
+13. ~~Prepare first release~~ ✅ Done (release workflow, install scripts, CHANGELOG)
+14. Tag v0.1.0 release
 
 ---
 

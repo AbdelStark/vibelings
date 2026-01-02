@@ -1520,5 +1520,8 @@ fn test_production_budget_01_invalid_on_limit_reached() {
     }"#;
 
     let result = grader.grade(&exercise, invalid_output).unwrap();
-    assert!(!result.passed, "Expected invalid on_limit_reached value to fail");
+    assert!(
+        !result.passed,
+        "Expected invalid on_limit_reached value to fail"
+    );
 }

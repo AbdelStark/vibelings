@@ -36,10 +36,22 @@ Like [Rustlings](https://github.com/rust-lang/rustlings) teaches Rust through sm
 
 ### Prerequisites
 
-- Rust 1.70+ (install from [rustup.rs](https://rustup.rs))
 - An API key from [OpenRouter](https://openrouter.ai) (or other supported provider)
+- Rust 1.70+ (only needed if building from source)
 
 ### Installation
+
+**Quick install (recommended):**
+
+```bash
+# Linux / macOS
+curl -sSL https://raw.githubusercontent.com/AbdelStark/vibelings/main/install.sh | bash
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/AbdelStark/vibelings/main/install.ps1 | iex
+```
+
+**From source:**
 
 ```bash
 # Clone the repository
@@ -48,6 +60,12 @@ cd vibelings
 
 # Build and install
 cargo install --path .
+```
+
+**Via cargo:**
+
+```bash
+cargo install --git https://github.com/AbdelStark/vibelings
 ```
 
 ### Setup
