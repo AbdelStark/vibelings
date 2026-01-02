@@ -1,0 +1,111 @@
+# vibelings Configuration Example
+#
+# Copy this file to ~/.config/vibelings/config.toml and customize as needed.
+# Alternatively, run `vibelings init` to generate a default configuration.
+#
+# For more information, see: https://github.com/AbdelStark/vibelings
+
+# =============================================================================
+# Model Configuration
+# =============================================================================
+[model]
+# Provider to use for model completions
+# Options: "openrouter" (default), "openai", "anthropic", "local"
+provider = "openrouter"
+
+# Model identifier (provider-specific)
+# Examples:
+#   OpenRouter: "anthropic/claude-sonnet-4-20250514", "openai/gpt-4o"
+#   OpenAI: "gpt-4o", "gpt-4o-mini"
+#   Anthropic: "claude-sonnet-4-20250514", "claude-3-haiku-20240307"
+#   Local: "llama3.1", "codestral"
+model = "anthropic/claude-sonnet-4-20250514"
+
+# Temperature for generation (0.0 = deterministic, higher = more creative)
+# Recommended: 0.0 for exercises requiring consistent output
+temperature = 0.0
+
+# Maximum tokens for response (optional, provider-dependent)
+# max_tokens = 4096
+
+# =============================================================================
+# OpenRouter Configuration (used when provider = "openrouter")
+# =============================================================================
+[openrouter]
+# Environment variable containing your OpenRouter API key
+# Get a key at: https://openrouter.ai/keys
+api_key_env = "OPENROUTER_API_KEY"
+
+# Zero Data Retention - prevents OpenRouter from storing prompts/completions
+# Recommended: true for privacy
+zdr = true
+
+# Data collection preference: "allow" or "deny"
+# "deny" prevents training data collection by providers
+data_collection = "deny"
+
+# Allow automatic fallbacks if primary model is unavailable
+allow_fallbacks = true
+
+# Preferred provider order for model routing
+# Models will be routed to these providers in order of preference
+provider_order = ["anthropic", "openai"]
+
+# =============================================================================
+# OpenAI Configuration (used when provider = "openai")
+# =============================================================================
+[openai]
+# Environment variable containing your OpenAI API key
+api_key_env = "OPENAI_API_KEY"
+
+# Optional: Organization ID for enterprise accounts
+# org_id_env = "OPENAI_ORG_ID"
+
+# =============================================================================
+# Anthropic Configuration (used when provider = "anthropic")
+# =============================================================================
+[anthropic]
+# Environment variable containing your Anthropic API key
+api_key_env = "ANTHROPIC_API_KEY"
+
+# =============================================================================
+# Local Configuration (used when provider = "local")
+# =============================================================================
+[local]
+# Base URL for local OpenAI-compatible API
+# Examples:
+#   Ollama: "http://localhost:11434/v1"
+#   LM Studio: "http://localhost:1234/v1"
+#   vLLM: "http://localhost:8000/v1"
+base_url = "http://localhost:11434/v1"
+
+# Optional: API key for authenticated local endpoints
+# api_key = "your-local-key"
+
+# =============================================================================
+# Sandbox Configuration
+# =============================================================================
+[sandbox]
+# Allow network access in tool execution
+# Recommended: false for security
+network = false
+
+# Timeout for tool execution in seconds
+timeout_seconds = 30
+
+# Commands allowed in shell tools
+# Only these commands can be executed by exercises
+allowed_commands = ["cat", "ls", "grep", "jq", "bash", "python3"]
+
+# =============================================================================
+# Display Configuration
+# =============================================================================
+[display]
+# Show token costs after each exercise run
+show_cost = true
+
+# Show trace information (tool calls, messages)
+show_trace = true
+
+# Color output: "auto", "always", "never"
+color = "auto"
