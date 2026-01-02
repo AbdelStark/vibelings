@@ -178,4 +178,87 @@ mod tests {
         assert!(result.success);
         assert!(result.stdout.contains("hello"));
     }
+
+    #[test]
+    fn test_executor_with_multiple_args() {
+        let executor = SandboxExecutor::new(30, false, PathBuf::from("."));
+        let result = executor.execute(
+            "echo",
+            &["hello".to_string(), "world".to_string(), "test".to_string()],
+        );
+
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(result.success);
+        assert!(result.stdout.contains("hello"));
+        assert!(result.stdout.contains("world"));
+        assert!(result.stdout.contains("test"));
+    }
+
+    #[test]
+    fn test_executor_nonexistent_command() {
+        let executor = SandboxExecutor::new(30, false, PathBuf::from("."));
+        let result = executor.execute("nonexistent_command_12345", &[]);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_executor_with_stdin() {
+        let executor = SandboxExecutor::new(30, false, PathBuf::from("."));
+        let result = executor.execute_with_input("cat", &[], "test input");
+
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(result.success);
+        assert!(result.stdout.contains("test input"));
+    }
+
+    #[test]
+    fn test_executor_exit_code() {
+        let executor = SandboxExecutor::new(30, false, PathBuf::from("."));
+
+        // Test successful exit (exit code 0)
+        let result = executor.execute("true", &[]);
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(result.success);
+        assert_eq!(result.exit_code, 0);
+
+        // Test failure exit (exit code 1)
+        let result = executor.execute("false", &[]);
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(!result.success);
+        assert_ne!(result.exit_code, 0);
+    }
+
+    #[test]
+    fn test_tool_execution_struct() {
+        let exec = ToolExecution {
+            name: "echo".to_string(),
+            args: vec!["hello".to_string()],
+            input: None,
+        };
+
+        assert_eq!(exec.name, "echo");
+        assert_eq!(exec.args.len(), 1);
+        assert!(exec.input.is_none());
+    }
+
+    #[test]
+    fn test_tool_result_struct() {
+        let result = ToolResult {
+            success: true,
+            exit_code: 0,
+            stdout: "output".to_string(),
+            stderr: "".to_string(),
+            duration_ms: 100,
+        };
+
+        assert!(result.success);
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(result.stdout, "output");
+        assert_eq!(result.duration_ms, 100);
+    }
 }

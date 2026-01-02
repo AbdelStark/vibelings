@@ -135,12 +135,12 @@
 ## Phase 6: Polish & Testing ✅
 
 ### Milestone 6.1: Testing ✅
-- [x] Unit tests for all modules (55 passing)
+- [x] Unit tests for all modules (84 passing)
 - [x] Grader error handling tests
-- [x] CLI integration tests (11 passing)
-- [x] Exercise grading tests (57 passing)
+- [x] CLI integration tests (19 passing)
+- [x] Exercise grading tests (63 passing)
 - [x] CI/CD setup (GitHub Actions)
-- [x] Total: 123 tests passing
+- [x] Total: 166 tests passing
 
 ### Milestone 6.2: Documentation ✅
 - [x] README.md with usage instructions
@@ -193,7 +193,7 @@
   - Teaches array validation with item constraints
   - minItems/maxItems constraints, nested object arrays
   - Includes 6 grading tests
-- Total: 152 tests passing (70 unit + 19 CLI + 63 grading)
+- Total: 166 tests passing (84 unit + 19 CLI + 63 grading)
 - Exercise count: 16 exercises across 4 tracks
 - All code passes clippy and rustfmt
 

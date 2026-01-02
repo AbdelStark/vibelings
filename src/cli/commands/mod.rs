@@ -42,6 +42,10 @@ pub enum Commands {
         /// Show verbose output including traces
         #[arg(short, long)]
         verbose: bool,
+
+        /// Preview exercise without running (shows prompt and expected schema)
+        #[arg(short, long)]
+        dry_run: bool,
     },
 
     /// List all exercises with their status
