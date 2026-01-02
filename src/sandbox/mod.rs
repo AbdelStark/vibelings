@@ -5,10 +5,13 @@
 //! - Filesystem confinement
 //! - Network isolation
 //! - Timeout enforcement
+//! - Fixture-based mock responses for deterministic grading
 
 mod executor;
+pub mod fixtures;
 
 pub use executor::{SandboxExecutor, ToolExecution, ToolResult};
+pub use fixtures::{FixtureStore, ToolFixture};
 
 use crate::config::SandboxConfig;
 use crate::error::SandboxError;

@@ -23,10 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **New exercise**: Added `fundamentals/json_03` - Array Contracts (teaches array validation and item-level constraints)
 - **Dry-run mode**: `vibelings run --dry-run` previews exercise without making API calls (shows requirements, schema, instructions)
 - **Performance benchmarks**: Added criterion benchmarks for schema validation and JSON parsing (`cargo bench`)
+- **Fixture system**: `FixtureStore` and `ToolFixture` types for deterministic tool responses in exercises - load mock responses from `fixtures/` directory for reproducible grading
 
 ### Changed
 
-- **Test coverage**: Added 43 new tests (166 tests total: 84 unit + 19 CLI + 63 grading)
+- **Test coverage**: Added 57 new tests (180 tests total: 98 unit + 19 CLI + 63 grading)
 - **Production readiness audit**: Improved sandbox executor tests, trace store tests, documentation consistency
 - **Better error messages**: All error types now include actionable hints (e.g., "Run: export API_KEY=..." for missing env vars)
 - **Exercise count**: Now 16 exercises across 4 tracks (8 fundamentals + 2 MCP + 3 workflows + 3 production)
