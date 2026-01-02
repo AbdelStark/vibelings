@@ -62,6 +62,10 @@ pub enum Commands {
         /// Show all exercises including locked ones
         #[arg(short, long)]
         all: bool,
+
+        /// Search exercises by keyword (matches ID, title, description)
+        #[arg(short, long)]
+        search: Option<String>,
     },
 
     /// Show hints for the current exercise

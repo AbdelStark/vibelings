@@ -32,8 +32,8 @@ pub async fn run() -> Result<()> {
             verbose,
             dry_run,
         }) => commands::run::run(exercise, *verbose, *dry_run, json_output).await,
-        Some(Commands::List { track, all }) => {
-            commands::list::run(track.as_deref(), *all, json_output).await
+        Some(Commands::List { track, all, search }) => {
+            commands::list::run(track.as_deref(), *all, search.as_deref(), json_output).await
         }
         Some(Commands::Hint { exercise, level }) => {
             commands::hint::run(exercise.as_deref(), *level).await

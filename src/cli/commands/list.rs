@@ -11,11 +11,19 @@ use crate::Result;
 use console::style;
 
 /// Run the list command.
-pub async fn run(track: Option<&str>, show_all: bool, json_output: bool) -> Result<()> {
+pub async fn run(
+    track: Option<&str>,
+    show_all: bool,
+    search: Option<&str>,
+    json_output: bool,
+) -> Result<()> {
     let runner = ExerciseRunner::new()?;
     let exercises = runner.discover_exercises()?;
     let progress = load_progress().unwrap_or_default();
     let completed = progress.completed_exercises();
+
+    // Prepare search query (lowercase for case-insensitive matching)
+    let search_lower = search.map(|s| s.to_lowercase());
 
     // Collect exercise data
     let mut exercise_infos: Vec<ExerciseInfo> = Vec::new();
@@ -33,11 +41,35 @@ pub async fn run(track: Option<&str>, show_all: bool, json_output: bool) -> Resu
             }
         }
 
+        // Filter by search query if specified
+        if let Some(ref query) = search_lower {
+            let matches = exercise.full_id().to_lowercase().contains(query)
+                || exercise
+                    .manifest
+                    .exercise
+                    .title
+                    .to_lowercase()
+                    .contains(query)
+                || exercise
+                    .manifest
+                    .exercise
+                    .description
+                    .as_ref()
+                    .map(|d| d.to_lowercase().contains(query))
+                    .unwrap_or(false);
+
+            if !matches {
+                continue;
+            }
+        }
+
         let prerequisites_met = exercise.prerequisites_met(&completed);
 
-        // Skip locked exercises unless --all is specified (for human output only)
+        // Skip locked exercises unless --all or --search is specified (for human output only)
+        // When searching, show all matching results regardless of lock status
         if !json_output
             && !show_all
+            && search.is_none()
             && !prerequisites_met
             && !completed.contains(&exercise.full_id())
         {
@@ -88,7 +120,26 @@ pub async fn run(track: Option<&str>, show_all: bool, json_output: bool) -> Resu
     }
 
     // Human-readable output
-    ui::print_command_header(icons::BOOK, "Exercise Library");
+    let header = if let Some(query) = search {
+        format!("Search Results: \"{}\"", query)
+    } else {
+        "Exercise Library".to_string()
+    };
+    ui::print_command_header(icons::BOOK, &header);
+
+    if exercise_infos.is_empty() {
+        if let Some(query) = search {
+            println!(
+                "  {} No exercises found matching \"{}\"",
+                icons::INFO,
+                style(query).cyan()
+            );
+        } else {
+            println!("  {} No exercises found", icons::INFO,);
+        }
+        println!();
+        return Ok(());
+    }
 
     let mut current_track = String::new();
     let mut track_exercise_count = 0;
@@ -169,15 +220,28 @@ pub async fn run(track: Option<&str>, show_all: bool, json_output: bool) -> Resu
 
     // Overall progress
     println!();
-    ui::section_header("Overall Progress");
+    ui::section_header("Results");
     ui::print_progress_bar(completed_count, total_count);
 
-    if !show_all {
-        println!();
+    // Help hints
+    println!();
+    if search.is_some() {
+        println!(
+            "  {} Found {} exercise{}",
+            icons::INFO,
+            style(total_count).cyan().bold(),
+            if total_count != 1 { "s" } else { "" }
+        );
+    } else if !show_all {
         println!(
             "  {} Use {} to see all exercises including locked ones",
             icons::INFO,
             style("--all").cyan()
+        );
+        println!(
+            "  {} Use {} to search by keyword",
+            icons::INFO,
+            style("--search <query>").cyan()
         );
     }
 
