@@ -23,6 +23,7 @@ use clap::Parser;
 /// Run the CLI application.
 pub async fn run() -> Result<()> {
     let cli = Cli::parse();
+    let json_output = cli.json;
 
     match &cli.command {
         Some(Commands::Init { track }) => commands::init::run(track.as_deref()).await,
@@ -30,18 +31,27 @@ pub async fn run() -> Result<()> {
             exercise,
             verbose,
             dry_run,
-        }) => commands::run::run(exercise, *verbose, *dry_run).await,
-        Some(Commands::List { track, all }) => commands::list::run(track.as_deref(), *all).await,
+        }) => commands::run::run(exercise, *verbose, *dry_run, json_output).await,
+        Some(Commands::List { track, all }) => {
+            commands::list::run(track.as_deref(), *all, json_output).await
+        }
         Some(Commands::Hint { exercise, level }) => {
             commands::hint::run(exercise.as_deref(), *level).await
         }
-        Some(Commands::Verify { exercise }) => commands::verify::run(exercise.as_deref()).await,
+        Some(Commands::Verify { exercise }) => {
+            commands::verify::run(exercise.as_deref(), json_output).await
+        }
         Some(Commands::Replay { run_id }) => commands::replay::run(run_id).await,
-        Some(Commands::Doctor { full }) => commands::doctor::run(*full).await,
-        Some(Commands::Cost { exercise }) => commands::cost::run(exercise.as_deref()).await,
+        Some(Commands::Doctor { full }) => commands::doctor::run(*full, json_output).await,
+        Some(Commands::Cost { exercise }) => {
+            commands::cost::run(exercise.as_deref(), json_output).await
+        }
         Some(Commands::Reset { exercise, force }) => commands::reset::run(exercise, *force).await,
         None => {
-            // Default: watch mode
+            // Default: watch mode (JSON not supported for interactive watch)
+            if json_output {
+                eprintln!("Warning: --json is not supported for watch mode");
+            }
             commands::watch::run().await
         }
     }

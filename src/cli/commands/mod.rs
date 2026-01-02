@@ -4,6 +4,7 @@ pub mod cost;
 pub mod doctor;
 pub mod hint;
 pub mod init;
+pub mod json_output;
 pub mod list;
 pub mod replay;
 pub mod reset;
@@ -19,6 +20,10 @@ use clap::{Parser, Subcommand};
 #[command(author, version, about, long_about = None)]
 #[command(propagate_version = true)]
 pub struct Cli {
+    /// Output results as JSON (for scripting and CI integration)
+    #[arg(long, global = true)]
+    pub json: bool,
+
     /// Subcommand to run (default: watch mode)
     #[command(subcommand)]
     pub command: Option<Commands>,
