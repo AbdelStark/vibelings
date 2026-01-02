@@ -131,7 +131,7 @@
 ### Milestone 6.1: Testing 🚧
 - [x] Unit tests for all modules (36 passing)
 - [x] Grader error handling tests
-- [ ] Integration tests
+- [x] CLI integration tests (11 passing)
 - [ ] Exercise grading tests
 - [ ] CI/CD setup
 
